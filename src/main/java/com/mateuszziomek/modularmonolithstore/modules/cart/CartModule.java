@@ -2,29 +2,28 @@ package com.mateuszziomek.modularmonolithstore.modules.cart;
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.Command;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandDispatcher;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.MessageBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleCommandDispatcher;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.event.UserRegisteredHandler;
-import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.command.CommandDispatcherFactory;
+import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.command.CommandBusFactory;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.domain.InMemoryCartRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.integration.event.UserRegisteredIntegrationEvent;
 import io.vavr.control.Try;
-import reactor.core.publisher.Mono;
 
 public class CartModule implements ModuleCommandDispatcher {
-    private final CommandDispatcher commandDispatcher;
+    private final CommandBus commandBus;
 
-    private CartModule(final CommandDispatcher commandDispatcher) {
-        Preconditions.checkNotNull(commandDispatcher, "Command dispatcher can't be null");
+    private CartModule(final CommandBus commandBus) {
+        Preconditions.checkNotNull(commandBus, "Command bus can't be null");
 
-        this.commandDispatcher = commandDispatcher;
+        this.commandBus = commandBus;
     }
 
     public static CartModule initialize(MessageBus messageBus) {
         Preconditions.checkNotNull(messageBus, "Message bus can't be null");
 
-        var commandDispatcher = CommandDispatcherFactory.create(new InMemoryCartRepository());
+        var commandDispatcher = CommandBusFactory.create(new InMemoryCartRepository());
 
         messageBus.subscribe(UserRegisteredIntegrationEvent.class, new UserRegisteredHandler(commandDispatcher));
 
@@ -32,7 +31,7 @@ public class CartModule implements ModuleCommandDispatcher {
     }
 
     @Override
-    public Mono<Try<Void>> dispatchCommand(Command command) {
-        return commandDispatcher.dispatch(command);
+    public Try<Void> dispatchCommand(Command command) {
+        return commandBus.dispatch(command);
     }
 }

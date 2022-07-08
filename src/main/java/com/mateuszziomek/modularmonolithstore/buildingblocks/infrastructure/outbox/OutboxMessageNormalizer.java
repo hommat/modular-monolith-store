@@ -2,10 +2,9 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.out
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.DomainEvent;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.IntegrationMessageMapper;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.IntegrationMessageMapperMissingException;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageMapper;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
+import io.vavr.control.Option;
 
 public class OutboxMessageNormalizer {
     private final List<? extends IntegrationMessageMapper> mappers;
@@ -16,24 +15,17 @@ public class OutboxMessageNormalizer {
         this.mappers = mappers;
     }
 
-    public Try<List<OutboxMessage>> normalizeMany(final List<DomainEvent> domainEvents) {
-        Preconditions.checkNotNull(domainEvents, "Domain events can't be null");
+    public Option<OutboxMessage> normalize(final DomainEvent domainEvent) {
+        Preconditions.checkNotNull(domainEvent, "Domain event can't be null");
 
-        List<OutboxMessage> outboxMessages = List.empty();
-
-        for (DomainEvent domainEvent : domainEvents) {
-            var mapper = mappers.find(m -> m.isSupported(domainEvent));
-
-            if (mapper.isEmpty()) {
-                return Try.failure(new IntegrationMessageMapperMissingException());
-            }
-
-            var integrationMessage = mapper.get().map(domainEvent);
-            var outboxMessage = new OutboxMessage(integrationMessage);
-
-            outboxMessages = outboxMessages.append(outboxMessage);
+        var mapper = mappers.find(m -> m.isSupported(domainEvent));
+        if (mapper.isEmpty()) {
+            return Option.none();
         }
 
-        return Try.success(outboxMessages);
+        var integrationMessage = mapper.get().map(domainEvent);
+        var outboxMessage = new OutboxMessage(integrationMessage);
+
+        return Option.of(outboxMessage);
     }
 }

@@ -6,7 +6,7 @@ import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.User;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserId;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.Username;
-import reactor.core.publisher.Mono;
+import io.vavr.control.Option;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,34 +24,29 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public Mono<User> findById(UserId userId) {
+    public Option<User> findById(UserId userId) {
         Preconditions.checkNotNull(userId, "User id can't ve null");
 
         var user = usersById.get(userId);
 
-        return user == null ? Mono.empty() : Mono.just(user);
+        return user == null ? Option.none() : Option.of(user);
     }
 
     @Override
-    public Mono<Boolean> isUsernameInUse(Username username) {
+    public boolean isUsernameInUse(Username username) {
         Preconditions.checkNotNull(username, "Username id can't ve null");
 
-        return Mono.just(usernamesInUse.contains(username));
+        return usernamesInUse.contains(username);
     }
 
     @Override
-    public Mono<User> save(User user) {
+    public void save(User user) {
         Preconditions.checkNotNull(user, "User id can't ve null");
 
         var userId = user.id();
-
-        return outboxMessageRepository
-                .saveDomainEvents(user.pendingDomainEvents())
-                .doOnSuccess(unused -> {
-                    user.markDomainEventsAsCommitted();
-                    usersById.put(userId, user);
-                    usernamesInUse.add(user.username());
-                })
-                .then(Mono.just(user));
+        outboxMessageRepository.saveDomainEvents(user.pendingDomainEvents());
+        user.markDomainEventsAsCommitted();
+        usersById.put(userId, user);
+        usernamesInUse.add(user.username());
     }
 }

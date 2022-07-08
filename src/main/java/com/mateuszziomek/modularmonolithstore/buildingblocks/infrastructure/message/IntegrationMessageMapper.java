@@ -1,4 +1,4 @@
-package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus;
+package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message;
 
 import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.DomainEvent;
 

@@ -1,9 +1,8 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox;
 
 import com.google.common.base.Preconditions;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.MessageBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
 import io.vavr.collection.List;
-import io.vavr.collection.Stream;
 
 public class OutboxProcessor {
     private final MessageBus messageBus;
@@ -18,15 +17,10 @@ public class OutboxProcessor {
     }
 
     public void process(int amount) {
-        // @TODO remove reactor
-        java.util.stream.Stream javaMessageStream = messageRepository
-                .findUnprocessedMessages(amount)
-                .toStream();
-
-        List<OutboxMessage> messages = Stream.ofAll(javaMessageStream).toList();
+        List<OutboxMessage> messages = messageRepository.findUnprocessedMessages(amount);
 
         for (OutboxMessage message : messages) {
-            var publishResult = messageBus.publish(message.message()).block();
+            var publishResult = messageBus.publish(message.message());
             if (publishResult == null || publishResult.isFailure()) {
                 return;
             }

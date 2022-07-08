@@ -1,16 +1,15 @@
 package com.mateuszziomek.modularmonolithstore.modules.user.application.command.changepassword;
 
 import com.google.common.base.Preconditions;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.ReactiveCommandHandler;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandHandler;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.exception.UserNotFoundException;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserId;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PasswordHashingAlgorithm;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PlainPassword;
 import io.vavr.control.Try;
-import reactor.core.publisher.Mono;
 
-public class ChangePasswordHandler implements ReactiveCommandHandler<ChangePasswordCommand> {
+public class ChangePasswordHandler implements CommandHandler<ChangePasswordCommand> {
     private final UserRepository userRepository;
     private final PasswordHashingAlgorithm passwordHashingAlgorithm;
 
@@ -26,7 +25,7 @@ public class ChangePasswordHandler implements ReactiveCommandHandler<ChangePassw
     }
 
     @Override
-    public Mono<Try<Void>> handle(final ChangePasswordCommand command) {
+    public Try<Void> handle(final ChangePasswordCommand command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         final var userId = new UserId(command.userId());
@@ -34,11 +33,9 @@ public class ChangePasswordHandler implements ReactiveCommandHandler<ChangePassw
 
         return userRepository
                 .findById(userId)
-                .map(user -> user.changePassword(password, passwordHashingAlgorithm))
-                .switchIfEmpty(Mono.just(Try.failure(new UserNotFoundException(userId))))
-                .flatMap(changePasswordTry -> changePasswordTry.isSuccess()
-                        ? userRepository.save(changePasswordTry.get()).map(unused -> Try.success(null))
-                        : Mono.just(Try.failure(changePasswordTry.getCause()))
-                );
+                .toTry(() -> new UserNotFoundException(userId))
+                .flatMap(user -> user.changePassword(password, passwordHashingAlgorithm))
+                .andThen(userRepository::save)
+                .flatMap(user -> Try.success(null));
     }
 }

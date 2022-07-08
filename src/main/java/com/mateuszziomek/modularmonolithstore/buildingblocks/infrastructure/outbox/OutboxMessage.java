@@ -2,7 +2,7 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.out
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.IntegrationMessage;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessage;
 
 public class OutboxMessage {
     private final IntegrationMessage message;
@@ -28,5 +28,12 @@ public class OutboxMessage {
     @Override
     public int hashCode() {
         return Objects.hashCode(message);
+    }
+
+    @Override
+    public String toString() {
+        return "OutboxMessage{" +
+                "message=" + message +
+                '}';
     }
 }

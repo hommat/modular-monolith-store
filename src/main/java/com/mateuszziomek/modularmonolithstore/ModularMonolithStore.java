@@ -1,7 +1,7 @@
 package com.mateuszziomek.modularmonolithstore;
 
 import com.google.common.base.Preconditions;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.impl.InMemoryMessageBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.impl.InMemoryMessageBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleMessageProcessor;
 import com.mateuszziomek.modularmonolithstore.modules.cart.CartModule;
 import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
@@ -32,9 +32,9 @@ public class ModularMonolithStore {
         var registerCommand = new RegisterCommand(userId, "username", "password");
         var changePasswordCommand = new ChangePasswordCommand(UUID.randomUUID(), "adasd");
 
-        var registerResult = userModule.dispatchCommand(registerCommand).block();
-        var registerResult2 = userModule.dispatchCommand(registerCommand).block();
-        var changePasswordResult = userModule.dispatchCommand(changePasswordCommand).block();
+        var registerResult = userModule.dispatchCommand(registerCommand);
+        var registerResult2 = userModule.dispatchCommand(registerCommand);
+        var changePasswordResult = userModule.dispatchCommand(changePasswordCommand);
 
         try {
             Thread.sleep(8000);
@@ -43,7 +43,7 @@ public class ModularMonolithStore {
         }
 
         var registerCommand3 = new RegisterCommand(userId, "username33", "password44");
-        var registerResult3 = userModule.dispatchCommand(registerCommand3).block();
+        var registerResult3 = userModule.dispatchCommand(registerCommand3);
     }
 
     public static class MessageProcessor implements Runnable {

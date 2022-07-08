@@ -1,4 +1,4 @@
-package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus;
+package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message;
 
 import com.google.common.base.Objects;
 

@@ -1,26 +1,27 @@
 package com.mateuszziomek.modularmonolithstore.modules.cart.application.event;
 
 import com.google.common.base.Preconditions;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandDispatcher;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.IntegrationEventHandler;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationEventHandler;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartCommand;
 import com.mateuszziomek.modularmonolithstore.modules.user.integration.event.UserRegisteredIntegrationEvent;
 import io.vavr.control.Try;
-import reactor.core.publisher.Mono;
 
 public class UserRegisteredHandler implements IntegrationEventHandler<UserRegisteredIntegrationEvent> {
-    private final CommandDispatcher commandDispatcher;
+    private final CommandBus commandBus;
 
-    public UserRegisteredHandler(final CommandDispatcher commandDispatcher) {
-        Preconditions.checkNotNull(commandDispatcher, "Command dispatcher can't be null");
+    public UserRegisteredHandler(final CommandBus commandBus) {
+        Preconditions.checkNotNull(commandBus, "Command dispatcher can't be null");
 
-        this.commandDispatcher = commandDispatcher;
+        this.commandBus = commandBus;
     }
 
     @Override
-    public Mono<Try<Void>> handle(UserRegisteredIntegrationEvent event) {
+    public Try<Void> handle(final UserRegisteredIntegrationEvent event) {
+        Preconditions.checkNotNull(event, "Event can't be null");
+
         var command = new CreateCartCommand(event.userId());
 
-        return commandDispatcher.dispatch(command);
+        return commandBus.dispatch(command);
     }
 }

@@ -1,7 +1,7 @@
 package com.mateuszziomek.modularmonolithstore.modules.user.integration.event;
 
 import com.google.common.base.Preconditions;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.IntegrationEvent;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationEvent;
 
 import java.util.UUID;
 

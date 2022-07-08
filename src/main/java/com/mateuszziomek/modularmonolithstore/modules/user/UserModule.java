@@ -2,27 +2,26 @@ package com.mateuszziomek.modularmonolithstore.modules.user;
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.Command;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandDispatcher;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.eventbus.MessageBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox.OutboxProcessor;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleCommandDispatcher;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleMessageProcessor;
-import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.application.command.CommandDispatcherFactory;
+import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.application.command.CommandBusFactory;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.domain.user.InMemoryUserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.domain.user.TemporaryPasswordHashingAlgorithm;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.outbox.InMemoryOutboxMessageRepository;
 import io.vavr.control.Try;
-import reactor.core.publisher.Mono;
 
 public class UserModule implements ModuleCommandDispatcher, ModuleMessageProcessor {
-    private final CommandDispatcher commandDispatcher;
+    private final CommandBus commandBus;
     private final OutboxProcessor outboxProcessor;
 
-    private UserModule(final CommandDispatcher commandDispatcher, final OutboxProcessor outboxProcessor) {
-        Preconditions.checkNotNull(commandDispatcher, "Command dispatcher can't be null");
+    private UserModule(final CommandBus commandBus, final OutboxProcessor outboxProcessor) {
+        Preconditions.checkNotNull(commandBus, "Command dispatcher can't be null");
         Preconditions.checkNotNull(outboxProcessor, "Outbox processor can't be null");
 
-        this.commandDispatcher = commandDispatcher;
+        this.commandBus = commandBus;
         this.outboxProcessor = outboxProcessor;
     }
 
@@ -30,7 +29,7 @@ public class UserModule implements ModuleCommandDispatcher, ModuleMessageProcess
         Preconditions.checkNotNull(messageBus, "Message bus can't be null");
 
         var outboxRepository = new InMemoryOutboxMessageRepository();
-        var commandDispatcher = CommandDispatcherFactory.create(
+        var commandDispatcher = CommandBusFactory.create(
                 new InMemoryUserRepository(outboxRepository),
                 new TemporaryPasswordHashingAlgorithm()
         );
@@ -40,8 +39,8 @@ public class UserModule implements ModuleCommandDispatcher, ModuleMessageProcess
     }
 
     @Override
-    public Mono<Try<Void>> dispatchCommand(Command command) {
-        return commandDispatcher.dispatch(command);
+    public Try<Void> dispatchCommand(Command command) {
+        return commandBus.dispatch(command);
     }
 
     @Override
