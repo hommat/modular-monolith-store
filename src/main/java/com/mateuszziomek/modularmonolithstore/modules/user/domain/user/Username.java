@@ -13,11 +13,15 @@ public class Username {
         this.value = value;
     }
 
+    public String value() {
+        return value;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Username)) return false;
-        Username username = (Username) o;
+        var username = (Username) o;
         return Objects.equal(value, username.value);
     }
 

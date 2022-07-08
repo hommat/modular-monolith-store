@@ -15,20 +15,8 @@ public class User extends AggregateRoot {
     private Username username;
     private HashedPassword hashedPassword;
 
-    private User() {}
-
-    public User(
-            final UserId userId,
-            final Username username,
-            final HashedPassword hashedPassword
-    ) {
-        Preconditions.checkNotNull(userId, "User id can't be null");
-        Preconditions.checkNotNull(username, "Username can't be null");
-        Preconditions.checkNotNull(hashedPassword, "Password can't be null");
-
-        this.userId = userId;
-        this.username = username;
-        this.hashedPassword = hashedPassword;
+    public User() {
+        // Required for event sourcing
     }
 
     public static User register(
@@ -42,29 +30,34 @@ public class User extends AggregateRoot {
         Preconditions.checkNotNull(plainPassword, "Password can't be null");
         Preconditions.checkNotNull(passwordHashingAlgorithm, "Password hashing algorithm can't be null");
 
-        var user = new User();
-        var hashedPassword = passwordHashingAlgorithm.hash(plainPassword);
-        user.userId = userId;
-        user.username = username;
-        user.hashedPassword = hashedPassword;
-        user.addDomainEvent(new UserRegisteredDomainEvent(userId, username, hashedPassword));
+        final var user = new User();
+        final var hashedPassword = passwordHashingAlgorithm.hash(plainPassword);
+        user.raiseEvent(new UserRegisteredDomainEvent(userId, username, hashedPassword));
         return user;
     }
 
-    public Try<Void> changePassword(
+    public Try<User> changePassword(
             final PlainPassword newPlainPassword,
             final PasswordHashingAlgorithm passwordHashingAlgorithm
     ) {
         Preconditions.checkNotNull(newPlainPassword, "Password can't be null");
         Preconditions.checkNotNull(passwordHashingAlgorithm, "Password hashing algorithm can't be null");
 
-        var newHashedPassword = passwordHashingAlgorithm.hash(newPlainPassword);
+        final var newHashedPassword = passwordHashingAlgorithm.hash(newPlainPassword);
 
         return checkRule(new PasswordMustBeChangedToDifferentOneRule(hashedPassword, newHashedPassword))
-                .andThen(() -> {
-                    hashedPassword = newHashedPassword;
-                    addDomainEvent(new UserPasswordChangedDomainEvent(userId, hashedPassword));
-                });
+                .andThen(() -> raiseEvent(new UserPasswordChangedDomainEvent(userId, hashedPassword)))
+                .map(unused -> this);
+    }
+
+    public void on(UserRegisteredDomainEvent event) {
+        userId = event.userId();
+        username = event.username();
+        hashedPassword = event.password();
+    }
+
+    public void on(UserPasswordChangedDomainEvent event) {
+        hashedPassword = event.password();
     }
 
     public UserId id() {
@@ -73,10 +66,6 @@ public class User extends AggregateRoot {
 
     public Username username() {
         return username;
-    }
-
-    public HashedPassword hashedPassword() {
-        return hashedPassword;
     }
 
     @Override

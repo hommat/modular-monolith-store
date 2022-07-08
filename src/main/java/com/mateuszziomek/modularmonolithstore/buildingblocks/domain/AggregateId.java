@@ -14,11 +14,15 @@ public class AggregateId {
         this.value = value;
     }
 
+    public UUID value() {
+        return value;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof AggregateId)) return false;
-        AggregateId aggregateId = (AggregateId) o;
+        var aggregateId = (AggregateId) o;
         return Objects.equal(value, aggregateId.value);
     }
 

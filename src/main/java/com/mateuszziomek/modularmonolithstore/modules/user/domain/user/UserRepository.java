@@ -4,5 +4,6 @@ import reactor.core.publisher.Mono;
 
 public interface UserRepository {
     Mono<User> findById(UserId userId);
-    Mono<Void> save(User user);
+    Mono<Boolean> isUsernameInUse(Username username);
+    Mono<User> save(User user);
 }

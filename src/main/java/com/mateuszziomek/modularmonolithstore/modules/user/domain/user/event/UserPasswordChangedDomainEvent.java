@@ -27,4 +27,20 @@ public class UserPasswordChangedDomainEvent extends DomainEvent {
     public HashedPassword password() {
         return hashedPassword;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserPasswordChangedDomainEvent)) return false;
+        return super.equals(o);
+    }
+
+    @Override
+    public String toString() {
+        return "UserPasswordChangedDomainEvent{" +
+                "userId=" + userId +
+                ", id=" + id +
+                ", occurAt=" + occurAt +
+                '}';
+    }
 }
