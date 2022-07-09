@@ -3,5 +3,5 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.mes
 import io.vavr.control.Try;
 
 public interface IntegrationMessageHandler<T extends IntegrationMessage> {
-    Try<Void> handle(T event);
+    Try<Void> handle(T message);
 }

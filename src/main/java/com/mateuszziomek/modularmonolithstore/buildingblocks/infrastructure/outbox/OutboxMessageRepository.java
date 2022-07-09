@@ -5,6 +5,6 @@ import io.vavr.collection.List;
 
 public interface OutboxMessageRepository {
     List<OutboxMessage> findUnprocessedMessages(int amount);
-    void saveDomainEvents(List<DomainEvent> messages);
+    void saveDomainEvents(List<? extends DomainEvent> messages);
     void markAsProcessed(List<OutboxMessage> messages);
 }

@@ -1,17 +1,18 @@
-package com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.outbox;
+package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox;
 
+import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.DomainEvent;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox.OutboxMessage;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox.OutboxMessageNormalizer;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox.OutboxMessageRepository;
-import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.message.mapper.UserRegisteredEventMapper;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 
 public class InMemoryOutboxMessageRepository implements OutboxMessageRepository {
-    private final OutboxMessageNormalizer normalizer = new OutboxMessageNormalizer(
-            List.of(new UserRegisteredEventMapper())
-    );
+    private final OutboxMessageNormalizer normalizer;
+
+    public InMemoryOutboxMessageRepository(final OutboxMessageNormalizer normalizer) {
+        Preconditions.checkNotNull(normalizer, "Normalizer can't be null");
+
+        this.normalizer = normalizer;
+    }
 
     private List<OutboxMessage> messages = List.empty();
 
@@ -21,7 +22,7 @@ public class InMemoryOutboxMessageRepository implements OutboxMessageRepository 
     }
 
     @Override
-    public void saveDomainEvents(final List<DomainEvent> messages) {
+    public void saveDomainEvents(final List<? extends DomainEvent> messages) {
         var outboxMessages = messages
                 .map(normalizer::normalize)
                 .filter(option -> !option.isEmpty()).map(Option::get);

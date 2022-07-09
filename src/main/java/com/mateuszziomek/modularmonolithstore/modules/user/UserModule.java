@@ -4,14 +4,18 @@ import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.Command;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox.OutboxMessageNormalizer;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox.OutboxProcessor;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleCommandDispatcher;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleMessageProcessor;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.application.command.CommandBusFactory;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.domain.user.InMemoryUserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.domain.user.TemporaryPasswordHashingAlgorithm;
-import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.outbox.InMemoryOutboxMessageRepository;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.outbox.InMemoryOutboxMessageRepository;
+import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.message.mapper.UserRegisteredEventMapper;
+import io.vavr.collection.List;
 import io.vavr.control.Try;
+
 
 public class UserModule implements ModuleCommandDispatcher, ModuleMessageProcessor {
     private final CommandBus commandBus;
@@ -28,7 +32,10 @@ public class UserModule implements ModuleCommandDispatcher, ModuleMessageProcess
     public static UserModule initialize(final MessageBus messageBus) {
         Preconditions.checkNotNull(messageBus, "Message bus can't be null");
 
-        var outboxRepository = new InMemoryOutboxMessageRepository();
+        var outboxNormalizer = new OutboxMessageNormalizer(
+                List.of(new UserRegisteredEventMapper())
+        );
+        var outboxRepository = new InMemoryOutboxMessageRepository(outboxNormalizer);
         var commandDispatcher = CommandBusFactory.create(
                 new InMemoryUserRepository(outboxRepository),
                 new TemporaryPasswordHashingAlgorithm()
