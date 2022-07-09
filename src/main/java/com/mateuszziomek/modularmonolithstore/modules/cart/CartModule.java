@@ -3,6 +3,8 @@ package com.mateuszziomek.modularmonolithstore.modules.cart;
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.Command;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inbox.InMemoryInboxMessageRepository;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inbox.InboxMessageHandler;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleCommandDispatcher;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.event.UserRegisteredHandler;
@@ -23,9 +25,13 @@ public class CartModule implements ModuleCommandDispatcher {
     public static CartModule initialize(MessageBus messageBus) {
         Preconditions.checkNotNull(messageBus, "Message bus can't be null");
 
+        var inboxRepository = new InMemoryInboxMessageRepository();
         var commandDispatcher = CommandBusFactory.create(new InMemoryCartRepository());
 
-        messageBus.subscribe(UserRegisteredIntegrationEvent.class, new UserRegisteredHandler(commandDispatcher));
+        messageBus.subscribe(
+                UserRegisteredIntegrationEvent.class,
+                new InboxMessageHandler<>(inboxRepository, new UserRegisteredHandler(commandDispatcher))
+        );
 
         return new CartModule(commandDispatcher);
     }

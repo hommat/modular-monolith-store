@@ -1,8 +1,5 @@
-package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.impl;
+package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message;
 
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessage;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageHandler;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 

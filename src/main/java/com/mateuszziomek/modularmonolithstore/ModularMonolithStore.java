@@ -1,7 +1,7 @@
 package com.mateuszziomek.modularmonolithstore;
 
 import com.google.common.base.Preconditions;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.impl.InMemoryMessageBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.InMemoryMessageBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleMessageProcessor;
 import com.mateuszziomek.modularmonolithstore.modules.cart.CartModule;
 import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
