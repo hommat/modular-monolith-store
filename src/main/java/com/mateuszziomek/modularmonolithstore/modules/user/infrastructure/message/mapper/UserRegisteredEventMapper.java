@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.DomainEvent;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageMapper;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.event.UserRegisteredDomainEvent;
-import com.mateuszziomek.modularmonolithstore.modules.user.integration.event.UserRegisteredIntegrationEvent;
+import com.mateuszziomek.modularmonolithstore.integration.event.UserRegisteredIntegrationEvent;
 
 public class UserRegisteredEventMapper implements IntegrationMessageMapper<UserRegisteredDomainEvent, UserRegisteredIntegrationEvent> {
     @Override

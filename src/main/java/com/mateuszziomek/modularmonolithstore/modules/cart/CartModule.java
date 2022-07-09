@@ -10,7 +10,7 @@ import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleComman
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.event.UserRegisteredHandler;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.command.CommandBusFactory;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.domain.InMemoryCartRepository;
-import com.mateuszziomek.modularmonolithstore.modules.user.integration.event.UserRegisteredIntegrationEvent;
+import com.mateuszziomek.modularmonolithstore.integration.event.UserRegisteredIntegrationEvent;
 import io.vavr.control.Try;
 
 public class CartModule implements ModuleCommandDispatcher {

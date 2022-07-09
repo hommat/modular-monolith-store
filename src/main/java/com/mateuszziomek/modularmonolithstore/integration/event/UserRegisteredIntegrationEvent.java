@@ -1,4 +1,4 @@
-package com.mateuszziomek.modularmonolithstore.modules.user.integration.event;
+package com.mateuszziomek.modularmonolithstore.integration.event;
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationEvent;

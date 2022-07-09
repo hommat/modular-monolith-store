@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationEventHandler;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartCommand;
-import com.mateuszziomek.modularmonolithstore.modules.user.integration.event.UserRegisteredIntegrationEvent;
+import com.mateuszziomek.modularmonolithstore.integration.event.UserRegisteredIntegrationEvent;
 import io.vavr.control.Try;
 
 public class UserRegisteredHandler implements IntegrationEventHandler<UserRegisteredIntegrationEvent> {
