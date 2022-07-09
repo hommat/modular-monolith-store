@@ -6,14 +6,14 @@ import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inbox.InMemoryInboxMessageRepository;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inbox.InboxMessageHandler;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleCommandDispatcher;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.module.CommandDispatcherModule;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.event.UserRegisteredHandler;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.command.CommandBusFactory;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.domain.InMemoryCartRepository;
 import com.mateuszziomek.modularmonolithstore.integration.event.UserRegisteredIntegrationEvent;
 import io.vavr.control.Try;
 
-public class CartModule implements ModuleCommandDispatcher {
+public class CartModule implements CommandDispatcherModule {
     private final CommandBus commandBus;
 
     private CartModule(final CommandBus commandBus) {

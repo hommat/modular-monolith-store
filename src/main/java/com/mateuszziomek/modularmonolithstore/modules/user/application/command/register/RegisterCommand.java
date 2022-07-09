@@ -26,4 +26,12 @@ public class RegisterCommand implements Command {
     public String password() {
         return password;
     }
+
+    @Override
+    public String toString() {
+        return "RegisterCommand{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                '}';
+    }
 }

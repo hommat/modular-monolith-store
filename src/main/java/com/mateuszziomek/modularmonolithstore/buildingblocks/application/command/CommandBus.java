@@ -24,7 +24,7 @@ public class CommandBus {
         Preconditions.checkNotNull(handler, "Handler can't be null");
 
         if (handlers.containsKey(command)) {
-            return Try.failure(new RuntimeException("Command handler already registered"));
+            return Try.failure(new CommandHandlerAlreadyRegisteredException());
         }
 
         handlers.put(command, (CommandHandler<Command>) handler);

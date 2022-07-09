@@ -20,4 +20,11 @@ public class ChangePasswordCommand implements Command {
     public String password() {
         return password;
     }
+
+    @Override
+    public String toString() {
+        return "ChangePasswordCommand{" +
+                "userId=" + userId +
+                '}';
+    }
 }

@@ -1,5 +1,5 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.module;
 
-public interface ModuleMessageProcessor {
+public interface MessageProcessorModule {
     void processMessages(int amount);
 }

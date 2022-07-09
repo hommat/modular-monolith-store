@@ -2,11 +2,12 @@ package com.mateuszziomek.modularmonolithstore;
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.InMemoryMessageBus;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.module.ModuleMessageProcessor;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.module.MessageProcessorModule;
 import com.mateuszziomek.modularmonolithstore.modules.cart.CartModule;
 import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.changepassword.ChangePasswordCommand;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.register.RegisterCommand;
+import com.mateuszziomek.modularmonolithstore.modules.user.application.query.getdetailsuser.GetDetailsUserQuery;
 import io.vavr.collection.List;
 
 import java.time.Duration;
@@ -36,23 +37,27 @@ public class ModularMonolithStore {
         var registerResult2 = userModule.dispatchCommand(registerCommand);
         var changePasswordResult = userModule.dispatchCommand(changePasswordCommand);
 
-        try {
-            Thread.sleep(8000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(2000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
 
         var registerCommand3 = new RegisterCommand(userId, "username33", "password44");
         var registerResult3 = userModule.dispatchCommand(registerCommand3);
+
+        var queryResult = userModule.dispatchQuery(new GetDetailsUserQuery(userId));
+        System.out.println("RESULT");
+        System.out.println(queryResult);
     }
 
     public static class MessageProcessor implements Runnable {
-        private final List<ModuleMessageProcessor> moduleMessageProcessors;
+        private final List<MessageProcessorModule> moduleMessageProcessors;
         private final int messagesPerProcess;
         private final Duration messageProcessInterval;
 
         public MessageProcessor(
-                final List<ModuleMessageProcessor> moduleMessageProcessors,
+                final List<MessageProcessorModule> moduleMessageProcessors,
                 final int messagesPerProcess,
                 final Duration messageProcessInterval
         ) {
