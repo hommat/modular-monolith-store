@@ -46,7 +46,7 @@ public class User extends AggregateRoot {
         final var newHashedPassword = passwordHashingAlgorithm.hash(newPlainPassword);
 
         return checkRule(new PasswordMustBeChangedToDifferentOneRule(hashedPassword, newHashedPassword))
-                .andThen(() -> raiseEvent(new UserPasswordChangedDomainEvent(userId, hashedPassword)))
+                .andThen(() -> raiseEvent(new UserPasswordChangedDomainEvent(userId, newHashedPassword)))
                 .map(unused -> this);
     }
 
