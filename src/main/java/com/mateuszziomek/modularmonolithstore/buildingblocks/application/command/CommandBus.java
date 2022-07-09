@@ -8,7 +8,7 @@ import java.util.HashMap;
 public class CommandBus {
     private final HashMap<Class<? extends Command>, CommandHandler<Command>> handlers = new HashMap<>();
 
-    public synchronized <T extends Command> Try<Void> dispatch(final T command) {
+    public <T extends Command> Try<Void> dispatch(final T command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         final var handler = handlers.get(command.getClass());

@@ -30,12 +30,18 @@ public class ChangePasswordHandler implements CommandHandler<ChangePasswordComma
 
         final var userId = new UserId(command.userId());
         final var password = new PlainPassword(command.password());
+        final var userOption =  userRepository.findById(userId);
 
-        return userRepository
-                .findById(userId)
-                .toTry(() -> new UserNotFoundException(userId))
-                .flatMap(user -> user.changePassword(password, passwordHashingAlgorithm))
-                .andThen(userRepository::save)
-                .flatMap(user -> Try.success(null));
+        if (userOption.isEmpty()) {
+            return Try.failure(new UserNotFoundException(userId));
+        }
+
+        final var user = userOption.get();
+
+        synchronized (user) {
+            return user.changePassword(password, passwordHashingAlgorithm)
+                    .andThen(userRepository::save)
+                    .flatMap(unused -> Try.success(null));
+        }
     }
 }
