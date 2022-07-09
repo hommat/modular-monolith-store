@@ -5,7 +5,6 @@ import com.mateuszziomek.modularmonolithstore.integration.event.UserRegisteredIn
 import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.register.RegisterCommand;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.query.getdetailsuser.GetDetailsUserQuery;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -13,18 +12,11 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
 class UserRegisterTest {
-    private TestMessageBus messageBus;
-    private UserModule sut;
-
-    @BeforeEach
-    void beforeEach() {
-        messageBus = new TestMessageBus();
-        sut = UserModule.initialize(messageBus);
-    }
-
     @Test
     void userCanBeRegistered() {
         // Arrange
+        var messageBus = new TestMessageBus();
+        var sut = UserModule.initialize(messageBus);
         var uuid = UUID.randomUUID();
 
         // Act
@@ -41,13 +33,15 @@ class UserRegisterTest {
         assertThat(event.username()).isEqualTo("username");
 
         var getUserQueryResult = sut.dispatchQuery(new GetDetailsUserQuery(uuid));
-        assertThat(getUserQueryResult.isSuccess()).isTrue();
-        assertThat(getUserQueryResult.get().isDefined()).isTrue();
+        var cart = getUserQueryResult.get().get();
+        assertThat(cart.id()).isEqualTo(uuid);
     }
 
     @Test
     void usernameMustNotBeInUse() {
         // Arrange
+        var messageBus = new TestMessageBus();
+        var sut = UserModule.initialize(messageBus);
         var uuid = UUID.randomUUID();
         sut.dispatchCommand(new RegisterCommand(UUID.randomUUID(), "username", "password"));
         sut.processMessages(10);

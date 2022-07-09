@@ -17,7 +17,7 @@ public class GetDetailsUserHandler implements QueryHandler<Option<DetailsUser>, 
     }
 
     @Override
-    public Try<Option<DetailsUser>> handle(GetDetailsUserQuery query) {
+    public Try<Option<DetailsUser>> handle(final GetDetailsUserQuery query) {
         Preconditions.checkNotNull(query, "Query can't be null");
 
         return Try.success(finder.findById(query.id()));

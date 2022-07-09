@@ -1,4 +1,4 @@
-package com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.command;
+package com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.application.command;
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;

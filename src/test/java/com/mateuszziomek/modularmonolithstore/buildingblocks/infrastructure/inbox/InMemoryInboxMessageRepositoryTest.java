@@ -30,7 +30,7 @@ class InMemoryInboxMessageRepositoryTest {
         var result = sut.isProcessed(message);
 
         // Assert
-        assertThat(result).isFalse();
+        assertThat(result).isTrue();
     }
 
     private static class TestIntegrationMessage extends IntegrationMessage {}

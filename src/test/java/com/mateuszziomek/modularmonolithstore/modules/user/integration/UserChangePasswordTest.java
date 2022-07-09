@@ -5,7 +5,6 @@ import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.mess
 import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.changepassword.ChangePasswordCommand;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.register.RegisterCommand;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -13,18 +12,11 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class UserChangePasswordTest {
-    private TestMessageBus messageBus;
-    private UserModule sut;
-
-    @BeforeEach
-    void beforeEach() {
-        messageBus = new TestMessageBus();
-        sut = UserModule.initialize(messageBus);
-    }
-
     @Test
     void userPasswordCanBeChanged() {
         // Arrange
+        var messageBus = new TestMessageBus();
+        var sut = UserModule.initialize(messageBus);
         var uuid = UUID.randomUUID();
         sut.dispatchCommand(new RegisterCommand(uuid, "username", "password"));
         sut.processMessages(10);
