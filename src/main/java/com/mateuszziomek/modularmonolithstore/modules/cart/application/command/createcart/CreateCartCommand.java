@@ -14,4 +14,11 @@ public class CreateCartCommand implements Command {
     public UUID cartId() {
         return cartId;
     }
+
+    @Override
+    public String toString() {
+        return "CreateCartCommand{" +
+                "cartId=" + cartId +
+                '}';
+    }
 }

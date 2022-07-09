@@ -16,7 +16,6 @@ import java.util.UUID;
 public class ModularMonolithStore {
     public static void main(String[] args) {
         var messageBus = new InMemoryMessageBus();
-
         var userModule = UserModule.initialize(messageBus);
         var cartModule = CartModule.initialize(messageBus);
 

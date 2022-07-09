@@ -2,6 +2,7 @@ package com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.appli
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandLoggingDecorator;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.changepassword.ChangePasswordCommand;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.changepassword.ChangePasswordHandler;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.register.RegisterCommand;
@@ -23,12 +24,12 @@ public class CommandBusFactory {
 
         commandBus.registerCommand(
                 RegisterCommand.class,
-                new RegisterHandler(userRepository, passwordHashingAlgorithm)
+                new CommandLoggingDecorator<>(new RegisterHandler(userRepository, passwordHashingAlgorithm))
         );
 
         commandBus.registerCommand(
                 ChangePasswordCommand.class,
-                new ChangePasswordHandler(userRepository, passwordHashingAlgorithm)
+                new CommandLoggingDecorator<>(new ChangePasswordHandler(userRepository, passwordHashingAlgorithm))
         );
 
         return commandBus;

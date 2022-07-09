@@ -2,6 +2,7 @@ package com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.appli
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandLoggingDecorator;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartCommand;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartHandler;
 import com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart.CartRepository;
@@ -16,7 +17,7 @@ public class CommandBusFactory {
 
         commandBus.registerCommand(
                 CreateCartCommand.class,
-                new CreateCartHandler(cartRepository)
+                new CommandLoggingDecorator<>(new CreateCartHandler(cartRepository))
         );
 
         return commandBus;

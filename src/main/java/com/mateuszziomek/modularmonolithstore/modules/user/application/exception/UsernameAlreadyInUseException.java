@@ -6,6 +6,7 @@ public class UsernameAlreadyInUseException extends RuntimeException {
     private final transient Username username;
 
     public UsernameAlreadyInUseException(Username username) {
+        super("Username already in use");
         this.username = username;
     }
 

@@ -2,6 +2,7 @@ package com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.appli
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.event.EventLoggingDecorator;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inbox.InMemoryInboxMessageRepository;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inbox.InboxMessageHandler;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
@@ -19,7 +20,7 @@ public class EventConfiguration {
 
         messageBus.subscribe(
                 UserRegisteredIntegrationEvent.class,
-                new InboxMessageHandler<>(inboxRepository, new UserRegisteredHandler(commandBus))
+                new InboxMessageHandler<>(inboxRepository, new EventLoggingDecorator<>(new UserRegisteredHandler(commandBus)))
         );
     }
 }
