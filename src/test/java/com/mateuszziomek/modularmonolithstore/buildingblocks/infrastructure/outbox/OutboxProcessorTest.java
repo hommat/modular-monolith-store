@@ -6,8 +6,9 @@ import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.mess
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageHandler;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageMapper;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -21,14 +22,16 @@ class OutboxProcessorTest {
         var handler = new SuccessTestIntegrationMessageHandler();
         var sut = new OutboxProcessor(messageBus, outboxRepository);
 
-        outboxRepository.saveDomainEvents(List.of(new TestDomainEvent(), new TestDomainEvent()));
+        outboxRepository.saveDomainEvents(List.of(new TestDomainEvent(), new TestDomainEvent())).block();
         messageBus.subscribe(TestIntegrationMessage.class, handler);
 
         // Act
-        sut.process(2);
+        sut.process(2).block();
 
         // Assert
-        assertThat(outboxRepository.findUnprocessedMessages(2).length()).isZero();
+        StepVerifier
+                .create(outboxRepository.findUnprocessedMessages(2))
+                .verifyComplete();
         assertThat(handler.processAmount).isEqualTo(2);
     }
 
@@ -38,18 +41,29 @@ class OutboxProcessorTest {
         var messageBus = new InMemoryMessageBus();
         var outboxNormalizer = new OutboxMessageNormalizer(List.of(new TestIntegrationMessageMapper()));
         var outboxRepository = new InMemoryOutboxMessageRepository(outboxNormalizer);
-        var handler = new FailureTestIntegrationMessageHandler();
+        var successHandler = new SuccessTestIntegrationMessageHandler();
+        var failureHandler = new FailureTestIntegrationMessageHandler();
         var sut = new OutboxProcessor(messageBus, outboxRepository);
 
-        outboxRepository.saveDomainEvents(List.of(new TestDomainEvent(), new TestDomainEvent()));
-        messageBus.subscribe(TestIntegrationMessage.class, handler);
+        outboxRepository.saveDomainEvents(List.of(new TestDomainEvent(), new TestDomainEvent())).block();
+        messageBus.subscribe(TestIntegrationMessage.class, successHandler);
+        messageBus.subscribe(TestIntegrationMessage.class, failureHandler);
 
         // Act
-        sut.process(2);
+        var result = sut.process(2);
 
         // Assert
-        assertThat(outboxRepository.findUnprocessedMessages(2).length()).isEqualTo(2);
-        assertThat(handler.processAmount).isEqualTo(1);
+        StepVerifier
+                .create(result)
+                .verifyError();
+
+        StepVerifier
+                .create(outboxRepository.findUnprocessedMessages(2))
+                .expectNextCount(2)
+                .verifyComplete();
+
+        assertThat(successHandler.processAmount).isEqualTo(1);
+        assertThat(failureHandler.processAmount).isEqualTo(1);
     }
 
     private static class TestDomainEvent extends DomainEvent {}
@@ -73,10 +87,10 @@ class OutboxProcessorTest {
         public int processAmount = 0;
 
         @Override
-        public Try<Void> handle(TestIntegrationMessage message) {
+        public Mono<Void> handle(TestIntegrationMessage message) {
             processAmount += 1;
 
-            return Try.success(null);
+            return Mono.empty();
         }
     }
 
@@ -84,10 +98,10 @@ class OutboxProcessorTest {
         public int processAmount = 0;
 
         @Override
-        public Try<Void> handle(TestIntegrationMessage message) {
+        public Mono<Void> handle(TestIntegrationMessage message) {
             processAmount += 1;
 
-            return Try.failure(new RuntimeException());
+            return Mono.error(new RuntimeException("FailureTestIntegrationMessageHandler Exception"));
         }
     }
 }

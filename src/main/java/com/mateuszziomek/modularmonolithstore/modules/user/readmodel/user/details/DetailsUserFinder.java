@@ -3,7 +3,7 @@ package com.mateuszziomek.modularmonolithstore.modules.user.readmodel.user.detai
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserId;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
-import io.vavr.control.Option;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ public class DetailsUserFinder {
         this.userRepository = userRepository;
     }
 
-    public Option<DetailsUser> findById(final UUID id) {
+    public Mono<DetailsUser> findById(final UUID id) {
         Preconditions.checkNotNull(id, "Id can't be null");
 
         return userRepository.findById(new UserId(id)).map(DetailsUserMapper::fromModel);

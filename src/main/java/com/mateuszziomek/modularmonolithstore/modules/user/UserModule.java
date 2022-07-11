@@ -15,8 +15,7 @@ import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.applic
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.domain.user.InMemoryUserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.domain.user.TemporaryPasswordHashingAlgorithm;
 import com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.outbox.OutboxMessageRepositoryFactory;
-import io.vavr.control.Try;
-
+import reactor.core.publisher.Mono;
 
 public class UserModule implements CommandDispatcherModule, QueryDispatcherModule, MessageProcessorModule {
     private final CommandBus commandBus;
@@ -37,7 +36,7 @@ public class UserModule implements CommandDispatcherModule, QueryDispatcherModul
         this.outboxProcessor = outboxProcessor;
     }
 
-    public static UserModule initialize(final MessageBus messageBus) {
+    public static UserModule bootstrap(final MessageBus messageBus) {
         Preconditions.checkNotNull(messageBus, "Message bus can't be null");
 
         var outboxMessageRepository = OutboxMessageRepositoryFactory.create();
@@ -53,19 +52,19 @@ public class UserModule implements CommandDispatcherModule, QueryDispatcherModul
     }
 
     @Override
-    public Try<Void> dispatchCommand(final Command command) {
+    public Mono<Void> dispatchCommand(final Command command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         return commandBus.dispatch(command);
     }
 
     @Override
-    public void processMessages(final int amount) {
-        outboxProcessor.process(amount);
+    public Mono<Void> processMessages(final int amount) {
+        return outboxProcessor.process(amount);
     }
 
     @Override
-    public <T> Try<T> dispatchQuery(final Query<T> query) {
+    public <T> T dispatchQuery(final Query<T> query) {
         Preconditions.checkNotNull(query, "Query can't be null");
 
         return queryBus.dispatch(query);

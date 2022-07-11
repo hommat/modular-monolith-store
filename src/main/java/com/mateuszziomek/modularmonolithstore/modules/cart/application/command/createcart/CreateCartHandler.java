@@ -5,7 +5,7 @@ import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command
 import com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart.Cart;
 import com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart.CartId;
 import com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart.CartRepository;
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public class CreateCartHandler implements CommandHandler<CreateCartCommand> {
     private final CartRepository cartRepository;
@@ -17,14 +17,12 @@ public class CreateCartHandler implements CommandHandler<CreateCartCommand> {
     }
 
     @Override
-    public Try<Void> handle(final CreateCartCommand command) {
+    public Mono<Void> handle(final CreateCartCommand command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         final var cartId = new CartId(command.cartId());
         final var cart = Cart.create(cartId);
 
-        cartRepository.save(cart);
-
-        return Try.success(null);
+        return cartRepository.save(cart);
     }
 }

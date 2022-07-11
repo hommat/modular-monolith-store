@@ -1,7 +1,8 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message;
 
 import io.vavr.collection.List;
-import io.vavr.control.Try;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 
@@ -9,16 +10,18 @@ public class InMemoryMessageBus implements MessageBus {
     private final HashMap<Class<? extends IntegrationMessage>, List<IntegrationMessageHandler>> handlers = new HashMap<>();
 
     @Override
-    public <T extends IntegrationMessage> Try<Void> publish(T integrationMessage) {
+    public <T extends IntegrationMessage> Mono<Void> publish(T integrationMessage) {
         var eventHandlers = handlers.get(integrationMessage.getClass());
 
         if (eventHandlers == null || eventHandlers.isEmpty()) {
-            return Try.success(null);
+            return Mono.empty();
         }
 
-        return eventHandlers.map(handler -> handler
-                .handle(integrationMessage))
-                .reduce((reductionTry, currentTry) -> reductionTry.isSuccess() ? currentTry : reductionTry);
+        List<Mono<Void>> monos = eventHandlers.map(handler -> handler.handle(integrationMessage));
+
+        return Flux.concat(monos)
+                .collectList()
+                .then();
     }
 
     @Override

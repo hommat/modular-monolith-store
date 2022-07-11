@@ -3,7 +3,7 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inb
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessage;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageHandler;
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public class InboxMessageHandler<T extends IntegrationMessage> implements IntegrationMessageHandler<T> {
     private final InboxMessageRepository inboxMessageRepository;
@@ -21,17 +21,14 @@ public class InboxMessageHandler<T extends IntegrationMessage> implements Integr
     }
 
     @Override
-    public Try<Void> handle(final T event) {
+    public Mono<Void> handle(final T event) {
         var inboxMessage = new InboxMessage(event);
-        if (inboxMessageRepository.isProcessed(inboxMessage)) {
-            return Try.success(null);
-        }
 
-        var result = handler.handle(event);
-        if (result.isSuccess()) {
-            inboxMessageRepository.markAsProcessed(inboxMessage);
-        }
-
-        return result;
+        return inboxMessageRepository
+                .isProcessed(inboxMessage)
+                .flatMap(isProcessed -> Boolean.TRUE.equals(isProcessed) ? Mono.empty() : Mono.just(isProcessed))
+                .flatMap(result -> handler.handle(event)
+                        .switchIfEmpty(inboxMessageRepository.markAsProcessed(inboxMessage))
+                );
     }
 }

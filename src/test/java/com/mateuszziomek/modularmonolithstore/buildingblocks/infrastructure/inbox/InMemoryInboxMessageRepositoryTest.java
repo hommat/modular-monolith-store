@@ -2,12 +2,11 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inb
 
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessage;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.*;
+import reactor.test.StepVerifier;
 
 class InMemoryInboxMessageRepositoryTest {
     @Test
-    void messageIsNotBeProcessedByDefault() {
+    void messageIsNotProcessedByDefault() {
         // Arrange
         var sut = new InMemoryInboxMessageRepository();
         var message = new InboxMessage(new TestIntegrationMessage());
@@ -16,7 +15,10 @@ class InMemoryInboxMessageRepositoryTest {
         var result = sut.isProcessed(message);
 
         // Assert
-        assertThat(result).isFalse();
+        StepVerifier
+                .create(result)
+                .expectNext(false)
+                .verifyComplete();
     }
 
     @Test
@@ -30,7 +32,10 @@ class InMemoryInboxMessageRepositoryTest {
         var result = sut.isProcessed(message);
 
         // Assert
-        assertThat(result).isTrue();
+        StepVerifier
+                .create(result)
+                .expectNext(true)
+                .verifyComplete();
     }
 
     private static class TestIntegrationMessage extends IntegrationMessage {}

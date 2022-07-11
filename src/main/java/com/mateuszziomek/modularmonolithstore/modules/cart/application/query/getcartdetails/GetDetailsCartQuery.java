@@ -2,11 +2,11 @@ package com.mateuszziomek.modularmonolithstore.modules.cart.application.query.ge
 
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.query.Query;
 import com.mateuszziomek.modularmonolithstore.modules.cart.readmodel.cart.DetailsCart;
-import io.vavr.control.Option;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-public class GetDetailsCartQuery implements Query<Option<DetailsCart>> {
+public class GetDetailsCartQuery implements Query<Mono<DetailsCart>> {
     private final UUID id;
 
     public GetDetailsCartQuery(final UUID id) {

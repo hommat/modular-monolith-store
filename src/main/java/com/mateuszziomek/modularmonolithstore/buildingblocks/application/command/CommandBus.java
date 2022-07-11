@@ -2,18 +2,19 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.application.comman
 
 import com.google.common.base.Preconditions;
 import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 
 public class CommandBus {
     private final HashMap<Class<? extends Command>, CommandHandler<Command>> handlers = new HashMap<>();
 
-    public <T extends Command> Try<Void> dispatch(final T command) {
+    public <T extends Command> Mono<Void> dispatch(final T command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         final var handler = handlers.get(command.getClass());
         if (handler == null) {
-            return Try.failure(new CommandHandlerNotFoundException());
+            return Mono.error(new CommandHandlerNotFoundException());
         }
 
         return handler.handle(command);

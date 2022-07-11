@@ -2,9 +2,10 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inb
 
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessage;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageHandler;
-import io.vavr.control.Try;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.util.Preconditions;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -15,13 +16,16 @@ class InboxMessageHandlerTest {
         var inboxRepository = new InMemoryInboxMessageRepository();
         var message = new TestIntegrationMessage();
         var handler = new TestIntegrationMessageHandler();
-        var inboxHandler = new InboxMessageHandler<TestIntegrationMessage>(inboxRepository, handler);
+        var inboxHandler = new InboxMessageHandler<>(inboxRepository, handler);
 
         // Act
         var result = inboxHandler.handle(message);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
+
         assertThat(handler.processCount).isEqualTo(1);
     }
 
@@ -31,14 +35,17 @@ class InboxMessageHandlerTest {
         var inboxRepository = new InMemoryInboxMessageRepository();
         var message = new TestIntegrationMessage();
         var handler = new TestIntegrationMessageHandler();
-        var inboxHandler = new InboxMessageHandler<TestIntegrationMessage>(inboxRepository, handler);
+        var inboxHandler = new InboxMessageHandler<>(inboxRepository, handler);
         inboxHandler.handle(message);
 
         // Act
         var result = inboxHandler.handle(message);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
+
         assertThat(handler.processCount).isEqualTo(1);
     }
 
@@ -48,11 +55,12 @@ class InboxMessageHandlerTest {
         public int processCount = 0;
 
         @Override
-        public Try<Void> handle(final TestIntegrationMessage event) {
+        public Mono<Void> handle(final TestIntegrationMessage event) {
             Preconditions.notNull(event, "Event can't be null");
 
             processCount += 1;
-            return Try.success(null);
+
+            return Mono.empty();
         }
     }
 }

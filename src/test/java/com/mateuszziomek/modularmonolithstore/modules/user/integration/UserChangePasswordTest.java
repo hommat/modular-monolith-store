@@ -6,6 +6,7 @@ import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.changepassword.ChangePasswordCommand;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.register.RegisterCommand;
 import org.junit.jupiter.api.Test;
+import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
@@ -16,18 +17,20 @@ class UserChangePasswordTest {
     void userPasswordCanBeChanged() {
         // Arrange
         var messageBus = new TestMessageBus();
-        var sut = UserModule.initialize(messageBus);
+        var sut = UserModule.bootstrap(messageBus);
         var uuid = UUID.randomUUID();
-        sut.dispatchCommand(new RegisterCommand(uuid, "username", "password"));
-        sut.processMessages(10);
+        sut.dispatchCommand(new RegisterCommand(uuid, "username", "password")).block();
+        sut.processMessages(10).block();
         messageBus.clearPublishedMessages();
 
         // Act
         var result = sut.dispatchCommand(new ChangePasswordCommand(uuid, "new password"));
-        sut.processMessages(10);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .then(() -> sut.processMessages(10))
+                .verifyComplete();
 
         assertThat(messageBus.publishedMessages.length()).isZero();
     }
@@ -36,14 +39,16 @@ class UserChangePasswordTest {
     void userMustExists() {
         // Arrange
         var messageBus = new TestMessageBus();
-        var sut = UserModule.initialize(new InMemoryMessageBus());
+        var sut = UserModule.bootstrap(new InMemoryMessageBus());
 
         // Act
         var result = sut.dispatchCommand(new ChangePasswordCommand(UUID.randomUUID(), "new password"));
-        sut.processMessages(10);
 
         // Assert
-        assertThat(result.isFailure()).isTrue();
+        StepVerifier
+                .create(result)
+                .then(() -> sut.processMessages(10))
+                .verifyError();
 
         assertThat(messageBus.publishedMessages.length()).isZero();
     }

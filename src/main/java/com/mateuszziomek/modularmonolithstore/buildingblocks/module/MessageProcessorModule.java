@@ -1,5 +1,7 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.module;
 
+import reactor.core.publisher.Mono;
+
 public interface MessageProcessorModule {
-    void processMessages(int amount);
+    Mono<Void> processMessages(int amount);
 }

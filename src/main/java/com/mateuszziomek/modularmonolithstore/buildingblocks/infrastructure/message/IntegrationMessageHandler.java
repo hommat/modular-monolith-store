@@ -1,7 +1,7 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message;
 
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public interface IntegrationMessageHandler<T extends IntegrationMessage> {
-    Try<Void> handle(T message);
+    Mono<Void> handle(T message);
 }

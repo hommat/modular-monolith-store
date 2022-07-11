@@ -3,6 +3,7 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.out
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.MessageBus;
 import io.vavr.collection.List;
+import reactor.core.publisher.Mono;
 
 public class OutboxProcessor {
     private final MessageBus messageBus;
@@ -16,16 +17,18 @@ public class OutboxProcessor {
         this.messageRepository = messageRepository;
     }
 
-    public void process(int amount) {
-        List<OutboxMessage> messages = messageRepository.findUnprocessedMessages(amount);
+    public Mono<Void> process(int amount) {
+        messageRepository.findUnprocessedMessages(amount);
 
-        for (OutboxMessage message : messages) {
-            var publishResult = messageBus.publish(message.message());
-            if (publishResult == null || publishResult.isFailure()) {
-                return;
-            }
-        }
-
-        messageRepository.markAsProcessed(messages);
+        return messageRepository
+                .findUnprocessedMessages(amount)
+                .concatMap(message -> messageBus
+                        .publish(message.message())
+                        .map(result -> message)
+                        .defaultIfEmpty(message)
+                )
+                .onErrorStop()
+                .collect(List.collector())
+                .flatMap(messageRepository::markAsProcessed);
     }
 }

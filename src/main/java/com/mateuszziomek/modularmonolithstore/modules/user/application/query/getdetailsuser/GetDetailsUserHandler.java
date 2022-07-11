@@ -4,10 +4,9 @@ import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.query.QueryHandler;
 import com.mateuszziomek.modularmonolithstore.modules.user.readmodel.user.details.DetailsUser;
 import com.mateuszziomek.modularmonolithstore.modules.user.readmodel.user.details.DetailsUserFinder;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
-public class GetDetailsUserHandler implements QueryHandler<Option<DetailsUser>, GetDetailsUserQuery> {
+public class GetDetailsUserHandler implements QueryHandler<Mono<DetailsUser>, GetDetailsUserQuery> {
     private final DetailsUserFinder finder;
 
     public GetDetailsUserHandler(final DetailsUserFinder finder) {
@@ -17,9 +16,9 @@ public class GetDetailsUserHandler implements QueryHandler<Option<DetailsUser>, 
     }
 
     @Override
-    public Try<Option<DetailsUser>> handle(final GetDetailsUserQuery query) {
+    public Mono<DetailsUser> handle(final GetDetailsUserQuery query) {
         Preconditions.checkNotNull(query, "Query can't be null");
 
-        return Try.success(finder.findById(query.id()));
+        return finder.findById(query.id());
     }
 }

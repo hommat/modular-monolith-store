@@ -1,10 +1,9 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message;
 
-import io.vavr.control.Try;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.util.Preconditions;
-
-import static org.assertj.core.api.Assertions.*;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 class InMemoryMessageBusTest {
     @Test
@@ -17,7 +16,9 @@ class InMemoryMessageBusTest {
         var result = sut.publish(message);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
     }
 
     @Test
@@ -37,7 +38,9 @@ class InMemoryMessageBusTest {
         var result = sut.publish(message);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
     }
 
     @Test
@@ -57,7 +60,9 @@ class InMemoryMessageBusTest {
         var result = sut.publish(message);
 
         // Assert
-        assertThat(result.isFailure()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyError();
     }
 
     @Test
@@ -73,7 +78,9 @@ class InMemoryMessageBusTest {
         var result = sut.publish(message);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
     }
 
     static class TestIntegrationMessage extends IntegrationMessage {}
@@ -82,19 +89,19 @@ class InMemoryMessageBusTest {
 
     static class SuccessTestIntegrationMessageHandler implements IntegrationMessageHandler<TestIntegrationMessage> {
         @Override
-        public Try<Void> handle(final TestIntegrationMessage message) {
+        public Mono<Void> handle(final TestIntegrationMessage message) {
             Preconditions.notNull(message, "Message can't be null");
 
-            return Try.success(null);
+            return Mono.empty();
         }
     }
 
     static class FailureTestIntegrationMessageHandler implements IntegrationMessageHandler<TestIntegrationMessage> {
         @Override
-        public Try<Void> handle(final TestIntegrationMessage message) {
+        public Mono<Void> handle(final TestIntegrationMessage message) {
             Preconditions.notNull(message, "Message can't be null");
 
-            return Try.failure(new RuntimeException());
+            return Mono.error(new RuntimeException());
         }
     }
 }

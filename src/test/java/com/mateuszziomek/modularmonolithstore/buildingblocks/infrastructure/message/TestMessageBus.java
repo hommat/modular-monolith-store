@@ -3,12 +3,13 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.mes
 import com.google.common.base.Preconditions;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public class TestMessageBus extends InMemoryMessageBus {
     public List<IntegrationMessage> publishedMessages = List.empty();
 
     @Override
-    public <T extends IntegrationMessage> Try<Void> publish(final T integrationEvent) {
+    public <T extends IntegrationMessage> Mono<Void> publish(final T integrationEvent) {
         publishedMessages = publishedMessages.append(integrationEvent);
 
         return super.publish(integrationEvent);

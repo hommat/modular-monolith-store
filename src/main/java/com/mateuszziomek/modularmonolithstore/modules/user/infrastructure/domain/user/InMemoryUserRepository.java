@@ -6,7 +6,7 @@ import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.User;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserId;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.Username;
-import io.vavr.control.Option;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,29 +24,33 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public Option<User> findById(UserId userId) {
+    public Mono<User> findById(final UserId userId) {
         Preconditions.checkNotNull(userId, "User id can't ve null");
 
-        var user = usersById.get(userId);
+        final var user = usersById.get(userId);
 
-        return user == null ? Option.none() : Option.of(user);
+        return user == null ? Mono.empty() : Mono.just(user);
     }
 
     @Override
-    public boolean isUsernameInUse(Username username) {
+    public Mono<Boolean> isUsernameInUse(final Username username) {
         Preconditions.checkNotNull(username, "Username id can't ve null");
 
-        return usernamesInUse.contains(username);
+        return Mono.just(usernamesInUse.contains(username));
     }
 
     @Override
-    public void save(User user) {
+    public Mono<Void> save(final User user) {
         Preconditions.checkNotNull(user, "User id can't ve null");
 
-        var userId = user.id();
-        outboxMessageRepository.saveDomainEvents(user.pendingDomainEvents());
-        user.markDomainEventsAsCommitted();
-        usersById.put(userId, user);
-        usernamesInUse.add(user.username());
+        final var userId = user.id();
+
+        return outboxMessageRepository
+                .saveDomainEvents(user.pendingDomainEvents())
+                .doOnSuccess(result -> {
+                    user.markDomainEventsAsCommitted();
+                    usersById.put(userId, user);
+                    usernamesInUse.add(user.username());
+                });
     }
 }

@@ -5,8 +5,7 @@ import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.mess
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.IntegrationMessageMapper;
 import io.vavr.collection.List;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.*;
+import reactor.test.StepVerifier;
 
 class InMemoryOutboxMessageRepositoryTest {
     @Test
@@ -20,7 +19,10 @@ class InMemoryOutboxMessageRepositoryTest {
         var result = repository.findUnprocessedMessages(5);
 
         // Assert
-        assertThat(result.length()).isEqualTo(3);
+        StepVerifier
+                .create(result)
+                .expectNextCount(3)
+                .verifyComplete();
     }
 
     @Test
@@ -28,15 +30,19 @@ class InMemoryOutboxMessageRepositoryTest {
         // Arrange
         var normalizer = new OutboxMessageNormalizer(List.of(new TestIntegrationMessageMapper()));
         var repository = new InMemoryOutboxMessageRepository(normalizer);
-        repository.saveDomainEvents(List.of(new DomainEvent(), new DomainEvent(), new DomainEvent()));
-        var unprocessedMessages = repository.findUnprocessedMessages(5);
-        repository.markAsProcessed(unprocessedMessages);
+        repository.saveDomainEvents(List.of(new DomainEvent(), new DomainEvent(), new DomainEvent())).block();
+        var unprocessedMessages = repository
+                .findUnprocessedMessages(5)
+                .collect(List.collector()).block();
+        repository.markAsProcessed(unprocessedMessages).block();
 
         // Act
         var result = repository.findUnprocessedMessages(5);
 
         // Assert
-        assertThat(result.length()).isZero();
+        StepVerifier
+                .create(result)
+                .expectComplete();
     }
 
     private static class TestDomainEvent extends DomainEvent {}

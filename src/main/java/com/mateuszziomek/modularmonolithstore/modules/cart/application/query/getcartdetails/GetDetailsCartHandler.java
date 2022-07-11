@@ -4,10 +4,9 @@ import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.query.QueryHandler;
 import com.mateuszziomek.modularmonolithstore.modules.cart.readmodel.cart.DetailsCart;
 import com.mateuszziomek.modularmonolithstore.modules.cart.readmodel.cart.DetailsCartFinder;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
-public class GetDetailsCartHandler implements QueryHandler<Option<DetailsCart>, GetDetailsCartQuery> {
+public class GetDetailsCartHandler implements QueryHandler<Mono<DetailsCart>, GetDetailsCartQuery> {
     private final DetailsCartFinder finder;
 
     public GetDetailsCartHandler(final DetailsCartFinder finder) {
@@ -17,9 +16,9 @@ public class GetDetailsCartHandler implements QueryHandler<Option<DetailsCart>, 
     }
 
     @Override
-    public Try<Option<DetailsCart>> handle(final GetDetailsCartQuery query) {
+    public Mono<DetailsCart> handle(final GetDetailsCartQuery query) {
         Preconditions.checkNotNull(query, "Query can't be null");
 
-        return Try.success(finder.findById(query.id()));
+        return finder.findById(query.id());
     }
 }

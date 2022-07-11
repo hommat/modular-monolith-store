@@ -2,9 +2,11 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.out
 
 import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.DomainEvent;
 import io.vavr.collection.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface OutboxMessageRepository {
-    List<OutboxMessage> findUnprocessedMessages(int amount);
-    void saveDomainEvents(List<? extends DomainEvent> messages);
-    void markAsProcessed(List<OutboxMessage> messages);
+    Flux<OutboxMessage> findUnprocessedMessages(int amount);
+    Mono<Void> saveDomainEvents(List<? extends DomainEvent> messages);
+    Mono<Void> markAsProcessed(List<OutboxMessage> messages);
 }

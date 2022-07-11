@@ -6,6 +6,7 @@ import com.mateuszziomek.modularmonolithstore.modules.cart.CartModule;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartCommand;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.query.getcartdetails.GetDetailsCartQuery;
 import org.junit.jupiter.api.Test;
+import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
@@ -16,25 +17,28 @@ class CreateCartTest {
     void cartCanBeCreated() {
         // Arrange
         var messageBus = new TestMessageBus();
-        var sut = CartModule.initialize(messageBus);
+        var sut = CartModule.bootstrap(messageBus);
         var uuid = UUID.randomUUID();
 
         // Act
         var result = sut.dispatchCommand(new CreateCartCommand(uuid));
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
 
-        var getCartQueryResult = sut.dispatchQuery(new GetDetailsCartQuery(uuid));
-        var cart = getCartQueryResult.get().get();
-        assertThat(cart.id()).isEqualTo(uuid);
+        StepVerifier
+                .create(sut.dispatchQuery(new GetDetailsCartQuery(uuid)))
+                .expectNextMatches(cart -> cart.id().equals(uuid))
+                .verifyComplete();
     }
 
     @Test
     void cartIsCreatedOnUserRegisteredIntegrationEvent() {
         // Arrange
         var messageBus = new TestMessageBus();
-        var sut = CartModule.initialize(messageBus);
+        var sut = CartModule.bootstrap(messageBus);
         var uuid = UUID.randomUUID();
         var event = new UserRegisteredIntegrationEvent(uuid, "username");
 
@@ -42,10 +46,13 @@ class CreateCartTest {
         var result = messageBus.publish(event);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
 
-        var getCartQueryResult = sut.dispatchQuery(new GetDetailsCartQuery(uuid));
-        var cart = getCartQueryResult.get().get();
-        assertThat(cart.id()).isEqualTo(uuid);
+        StepVerifier
+                .create(sut.dispatchQuery(new GetDetailsCartQuery(uuid)))
+                .expectNextMatches(cart -> cart.id().equals(uuid))
+                .verifyComplete();
     }
 }

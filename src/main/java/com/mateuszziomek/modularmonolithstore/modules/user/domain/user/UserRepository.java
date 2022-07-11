@@ -1,9 +1,9 @@
 package com.mateuszziomek.modularmonolithstore.modules.user.domain.user;
 
-import io.vavr.control.Option;
+import reactor.core.publisher.Mono;
 
 public interface UserRepository {
-    Option<User> findById(UserId userId);
-    boolean isUsernameInUse(Username username);
-    void save(User user);
+    Mono<User> findById(UserId userId);
+    Mono<Boolean> isUsernameInUse(Username username);
+    Mono<Void> save(User user);
 }

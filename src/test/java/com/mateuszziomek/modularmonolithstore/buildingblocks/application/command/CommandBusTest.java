@@ -1,7 +1,8 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.application.command;
 
-import io.vavr.control.Try;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -18,7 +19,10 @@ class CommandBusTest {
         var result = sut.dispatch(command);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyComplete();
+
         assertThat(handler.handleCount).isEqualTo(1);
     }
 
@@ -32,7 +36,9 @@ class CommandBusTest {
         var result = sut.dispatch(command);
 
         // Assert
-        assertThat(result.isFailure()).isTrue();
+        StepVerifier
+                .create(result)
+                .verifyError(CommandHandlerNotFoundException.class);
     }
 
     @Test
@@ -48,6 +54,7 @@ class CommandBusTest {
 
         // Assert
         assertThat(result.isFailure()).isTrue();
+        assertThat(result.getCause()).isInstanceOf(CommandHandlerAlreadyRegisteredException.class);
     }
 
     private static class TestCommand implements Command {}
@@ -56,10 +63,10 @@ class CommandBusTest {
         private int handleCount = 0;
 
         @Override
-        public Try<Void> handle(TestCommand command) {
+        public Mono<Void> handle(TestCommand command) {
             handleCount += 1;
 
-            return Try.success(null);
+            return Mono.empty();
         }
     }
 }

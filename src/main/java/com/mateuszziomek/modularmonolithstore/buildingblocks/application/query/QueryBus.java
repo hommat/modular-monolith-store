@@ -8,15 +8,15 @@ import java.util.HashMap;
 public class QueryBus {
     private final HashMap<Class<? extends Query>, QueryHandler> handlers = new HashMap<>();
 
-    public <T, U extends Query<T>> Try<T> dispatch(final U query) {
+    public <T, U extends Query<T>> T dispatch(final U query) {
         Preconditions.checkNotNull(query, "Query can't be null");
 
         final var handler = handlers.get(query.getClass());
         if (handler == null) {
-            return Try.failure(new QueryHandlerNotFoundException());
+            throw new QueryHandlerNotFoundException();
         }
 
-        return handler.handle(query);
+        return (T) handler.handle(query);
     }
 
     public <T, U extends Query<T>> Try<Void> registerQuery(final Class<U> query, final QueryHandler<T, U> handler) {

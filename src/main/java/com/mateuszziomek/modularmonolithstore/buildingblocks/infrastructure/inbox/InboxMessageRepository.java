@@ -1,6 +1,8 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inbox;
 
+import reactor.core.publisher.Mono;
+
 public interface InboxMessageRepository {
-    boolean isProcessed(InboxMessage message);
-    void markAsProcessed(InboxMessage message);
+    Mono<Boolean> isProcessed(InboxMessage message);
+    Mono<Void> markAsProcessed(InboxMessage message);
 }

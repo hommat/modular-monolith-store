@@ -2,7 +2,6 @@ package com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.appli
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.query.QueryBus;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.application.query.QueryLoggingDecorator;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.query.getcartdetails.GetDetailsCartHandler;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.query.getcartdetails.GetDetailsCartQuery;
 import com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart.CartRepository;
@@ -20,7 +19,7 @@ public class QueryBusFactory {
 
         queryBus.registerQuery(
                 GetDetailsCartQuery.class,
-                new QueryLoggingDecorator<>(new GetDetailsCartHandler(new DetailsCartFinder(cartRepository)))
+                new GetDetailsCartHandler(new DetailsCartFinder(cartRepository))
         );
 
         return queryBus;

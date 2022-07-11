@@ -2,7 +2,6 @@ package com.mateuszziomek.modularmonolithstore.modules.user.infrastructure.appli
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.query.QueryBus;
-import com.mateuszziomek.modularmonolithstore.buildingblocks.application.query.QueryLoggingDecorator;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.query.getdetailsuser.GetDetailsUserHandler;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.query.getdetailsuser.GetDetailsUserQuery;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
@@ -20,7 +19,7 @@ public class QueryBusFactory {
 
         queryBus.registerQuery(
                 GetDetailsUserQuery.class,
-                new QueryLoggingDecorator<>(new GetDetailsUserHandler(new DetailsUserFinder(userRepository)))
+                new GetDetailsUserHandler(new DetailsUserFinder(userRepository))
         );
 
         return queryBus;

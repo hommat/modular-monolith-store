@@ -1,7 +1,7 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.application.command;
 
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public interface CommandHandler<T extends Command> {
-    Try<Void> handle(T command);
+    Mono<Void> handle(T command);
 }

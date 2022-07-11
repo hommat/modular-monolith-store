@@ -1,7 +1,8 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.application.query;
 
-import io.vavr.control.Try;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -18,21 +19,12 @@ class QueryBusTest {
         var result = sut.dispatch(query);
 
         // Assert
-        assertThat(result.isSuccess()).isTrue();
+        StepVerifier
+                .create(result)
+                .expectNext("Some string")
+                .verifyComplete();
+
         assertThat(handler.handleCount).isEqualTo(1);
-    }
-
-    @Test
-    void queryWithoutHandlerCanNotBeDispatched() {
-        // Arrange
-        var command = new TestQuery();
-        var sut = new QueryBus();
-
-        // Act
-        var result = sut.dispatch(command);
-
-        // Assert
-        assertThat(result.isFailure()).isTrue();
     }
 
     @Test
@@ -48,18 +40,19 @@ class QueryBusTest {
 
         // Assert
         assertThat(result.isFailure()).isTrue();
+        assertThat(result.getCause()).isInstanceOf(QueryHandlerAlreadyRegisteredException.class);
     }
 
-    private static class TestQuery implements Query<String> {}
+    private static class TestQuery implements Query<Mono<String>> {}
 
-    private static class TestHandler implements QueryHandler<String, TestQuery> {
+    private static class TestHandler implements QueryHandler<Mono<String>, TestQuery> {
         private int handleCount = 0;
 
         @Override
-        public Try<String> handle(TestQuery query) {
+        public Mono<String> handle(TestQuery query) {
             handleCount += 1;
 
-            return Try.success(null);
+            return Mono.just("Some string");
         }
     }
 }

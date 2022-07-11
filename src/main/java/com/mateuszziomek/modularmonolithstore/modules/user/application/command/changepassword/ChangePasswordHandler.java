@@ -7,7 +7,7 @@ import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserId;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PasswordHashingAlgorithm;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PlainPassword;
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public class ChangePasswordHandler implements CommandHandler<ChangePasswordCommand> {
     private final UserRepository userRepository;
@@ -25,23 +25,17 @@ public class ChangePasswordHandler implements CommandHandler<ChangePasswordComma
     }
 
     @Override
-    public Try<Void> handle(final ChangePasswordCommand command) {
+    public Mono<Void> handle(final ChangePasswordCommand command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         final var userId = new UserId(command.userId());
         final var password = new PlainPassword(command.password());
-        final var userOption =  userRepository.findById(userId);
 
-        if (userOption.isEmpty()) {
-            return Try.failure(new UserNotFoundException(userId));
-        }
-
-        final var user = userOption.get();
-
-        synchronized (user) {
-            return user.changePassword(password, passwordHashingAlgorithm)
-                    .andThen(userRepository::save)
-                    .flatMap(unused -> Try.success(null));
-        }
+        return userRepository
+                .findById(userId)
+                .switchIfEmpty(Mono.error(new UserNotFoundException(userId)))
+                .doOnNext(user -> user.changePassword(password, passwordHashingAlgorithm))
+                .flatMap(userRepository::save)
+                .then();
     }
 }

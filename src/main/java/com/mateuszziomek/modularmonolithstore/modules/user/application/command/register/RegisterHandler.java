@@ -9,7 +9,7 @@ import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepos
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.Username;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PasswordHashingAlgorithm;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PlainPassword;
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public class RegisterHandler implements CommandHandler<RegisterCommand> {
     private final UserRepository userRepository;
@@ -27,20 +27,21 @@ public class RegisterHandler implements CommandHandler<RegisterCommand> {
     }
 
     @Override
-    public Try<Void> handle(final RegisterCommand command) {
+    public Mono<Void> handle(final RegisterCommand command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         final var userId = new UserId(command.userId());
         final var username = new Username(command.username());
         final var password = new PlainPassword(command.password());
 
-        if (userRepository.isUsernameInUse(username)) {
-            return Try.failure(new UsernameAlreadyInUseException(username));
-        }
-
-        final var user = User.register(userId, username, password, passwordHashingAlgorithm);
-        userRepository.save(user);
-
-        return Try.success(null);
+        return userRepository
+                .isUsernameInUse(username)
+                .flatMap(isUsernameInUse -> Boolean.TRUE.equals(isUsernameInUse)
+                        ? Mono.error(new UsernameAlreadyInUseException(username))
+                        : Mono.just(isUsernameInUse)
+                )
+                .map(result -> User.register(userId, username, password, passwordHashingAlgorithm))
+                .flatMap(userRepository::save)
+                .then();
     }
 }

@@ -12,7 +12,7 @@ import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.applic
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.application.event.EventConfiguration;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.application.query.QueryBusFactory;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.domain.InMemoryCartRepository;
-import io.vavr.control.Try;
+import reactor.core.publisher.Mono;
 
 public class CartModule implements CommandDispatcherModule, QueryDispatcherModule {
     private final CommandBus commandBus;
@@ -26,7 +26,7 @@ public class CartModule implements CommandDispatcherModule, QueryDispatcherModul
         this.queryBus = queryBus;
     }
 
-    public static CartModule initialize(final MessageBus messageBus) {
+    public static CartModule bootstrap(final MessageBus messageBus) {
         Preconditions.checkNotNull(messageBus, "Message bus can't be null");
 
         var cartRepository = new InMemoryCartRepository();
@@ -38,14 +38,14 @@ public class CartModule implements CommandDispatcherModule, QueryDispatcherModul
     }
 
     @Override
-    public Try<Void> dispatchCommand(final Command command) {
+    public Mono<Void> dispatchCommand(final Command command) {
         Preconditions.checkNotNull(command, "Command can't be null");
 
         return commandBus.dispatch(command);
     }
 
     @Override
-    public <T> Try<T> dispatchQuery(final Query<T> query) {
+    public <T> T dispatchQuery(final Query<T> query) {
         Preconditions.checkNotNull(query, "Query can't be null");
 
         return queryBus.dispatch(query);

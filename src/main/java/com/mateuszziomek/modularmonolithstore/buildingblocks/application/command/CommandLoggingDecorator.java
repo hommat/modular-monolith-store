@@ -1,9 +1,9 @@
 package com.mateuszziomek.modularmonolithstore.buildingblocks.application.command;
 
 import com.google.common.base.Preconditions;
-import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
 
 public class CommandLoggingDecorator<T extends Command> implements CommandHandler<T> {
     private static final Logger LOG = LoggerFactory.getLogger(CommandLoggingDecorator.class.getSimpleName());
@@ -16,21 +16,19 @@ public class CommandLoggingDecorator<T extends Command> implements CommandHandle
     }
 
     @Override
-    public Try<Void> handle(final T command) {
+    public Mono<Void> handle(final T command) {
         LOG.info("Executing command {}", command.getClass().getSimpleName());
 
-        var result = handler.handle(command);
-
-        if (result.isSuccess()) {
-            LOG.info("Command {} processed successfully", command.getClass().getSimpleName());
-        } else {
-            LOG.info(
-                "Command {} processing failed ({})",
-                command.getClass().getSimpleName(),
-                result.getCause().getMessage()
-            );
-        }
-
-        return result;
+        return handler
+                .handle(command)
+                .doOnSuccess(result -> LOG.info(
+                    "Command {} processed successfully",
+                    command.getClass().getSimpleName()
+                ))
+                .doOnError(throwable -> LOG.info(
+                        "Command {} processing failed - {}",
+                        command.getClass().getSimpleName(),
+                        throwable.getClass().getSimpleName()
+                ));
     }
 }

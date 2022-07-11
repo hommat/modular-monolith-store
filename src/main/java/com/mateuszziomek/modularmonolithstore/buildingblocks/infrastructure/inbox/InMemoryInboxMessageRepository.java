@@ -2,17 +2,22 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.inb
 
 import io.vavr.collection.HashSet;
 import io.vavr.collection.Set;
+import reactor.core.publisher.Mono;
 
 public class InMemoryInboxMessageRepository implements InboxMessageRepository {
     private Set<InboxMessage> processedMessages = HashSet.empty();
 
     @Override
-    public boolean isProcessed(InboxMessage message) {
-        return processedMessages.contains(message);
+    public Mono<Boolean> isProcessed(InboxMessage message) {
+        return Mono.just(processedMessages.contains(message));
     }
 
     @Override
-    public void markAsProcessed(InboxMessage message) {
-        processedMessages = processedMessages.add(message);
+    public Mono<Void> markAsProcessed(InboxMessage message) {
+        synchronized (this) {
+            processedMessages = processedMessages.add(message);
+        }
+
+        return Mono.empty();
     }
 }

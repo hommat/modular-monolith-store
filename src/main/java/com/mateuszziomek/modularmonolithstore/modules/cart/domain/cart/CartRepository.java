@@ -1,8 +1,8 @@
 package com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart;
 
-import io.vavr.control.Option;
+import reactor.core.publisher.Mono;
 
 public interface CartRepository {
-    Option<Cart> findById(CartId id);
-    void save(Cart user);
+    Mono<Cart> findById(CartId id);
+    Mono<Void> save(Cart user);
 }
