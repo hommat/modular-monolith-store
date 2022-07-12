@@ -1,5 +1,6 @@
 package com.mateuszziomek.modularmonolithstore.modules.user.integration;
 
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandValidationException;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.TestMessageBus;
 import com.mateuszziomek.modularmonolithstore.integration.event.UserRegisteredIntegrationEvent;
 import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
@@ -39,5 +40,20 @@ class UserRegisterTest {
         assertThat(event).isInstanceOf(UserRegisteredIntegrationEvent.class);
         assertThat(event.userId()).isEqualTo(uuid);
         assertThat(event.username()).isEqualTo("username");
+    }
+
+    @Test
+    void inputIsValidated() {
+        // Arrange
+        var messageBus = new TestMessageBus();
+        var sut = UserModule.bootstrap(messageBus);
+
+        // Act
+        var result = sut.dispatchCommand(new RegisterCommand(null, null, null));
+
+        // Assert
+        StepVerifier
+                .create(result)
+                .verifyError(CommandValidationException.class);
     }
 }

@@ -1,5 +1,6 @@
 package com.mateuszziomek.modularmonolithstore.modules.user.integration;
 
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandValidationException;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.InMemoryMessageBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.TestMessageBus;
 import com.mateuszziomek.modularmonolithstore.modules.user.UserModule;
@@ -51,5 +52,21 @@ class UserChangePasswordTest {
 
         sut.processMessages(10).block();
         assertThat(messageBus.publishedMessages.length()).isZero();
+    }
+
+    @Test
+    void inputIsValidated() {
+        // Arrange
+        var messageBus = new TestMessageBus();
+        var sut = UserModule.bootstrap(messageBus);
+        sut.dispatchCommand(new RegisterCommand(UUID.randomUUID(), "username", "password")).block();
+
+        // Act
+        var result = sut.dispatchCommand(new ChangePasswordCommand(null, null));
+
+        // Assert
+        StepVerifier
+                .create(result)
+                .verifyError(CommandValidationException.class);
     }
 }

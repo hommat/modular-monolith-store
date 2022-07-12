@@ -3,8 +3,10 @@ package com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.appli
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandBus;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandLoggingDecorator;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandValidationDecorator;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartCommand;
 import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartHandler;
+import com.mateuszziomek.modularmonolithstore.modules.cart.application.command.createcart.CreateCartValidator;
 import com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart.CartRepository;
 
 public class CommandBusFactory {
@@ -17,7 +19,12 @@ public class CommandBusFactory {
 
         commandBus.registerCommand(
                 CreateCartCommand.class,
-                new CommandLoggingDecorator<>(new CreateCartHandler(cartRepository))
+                new CommandLoggingDecorator<>(
+                        new CommandValidationDecorator<>(
+                                new CreateCartHandler(cartRepository),
+                                new CreateCartValidator()
+                        )
+                )
         );
 
         return commandBus;

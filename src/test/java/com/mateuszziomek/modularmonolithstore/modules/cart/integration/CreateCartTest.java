@@ -1,5 +1,6 @@
 package com.mateuszziomek.modularmonolithstore.modules.cart.integration;
 
+import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandValidationException;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.message.TestMessageBus;
 import com.mateuszziomek.modularmonolithstore.integration.event.UserRegisteredIntegrationEvent;
 import com.mateuszziomek.modularmonolithstore.modules.cart.CartModule;
@@ -54,5 +55,19 @@ class CreateCartTest {
                 .create(sut.dispatchQuery(new GetDetailsCartQuery(uuid)))
                 .expectNextMatches(cart -> cart.id().equals(uuid))
                 .verifyComplete();
+    }
+
+    @Test
+    void inputIsValidated() {
+        var messageBus = new TestMessageBus();
+        var sut = CartModule.bootstrap(messageBus);
+
+        // Act
+        var result = sut.dispatchCommand(new CreateCartCommand(null));
+
+        // Assert
+        StepVerifier
+                .create(result)
+                .verifyError(CommandValidationException.class);
     }
 }
