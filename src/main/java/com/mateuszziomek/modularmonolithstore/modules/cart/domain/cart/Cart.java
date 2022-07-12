@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.AggregateRoot;
 import com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart.event.CartCreatedDomainEvent;
 
-public class Cart extends AggregateRoot {
+public class Cart extends AggregateRoot<CartId> {
     private CartId cartId;
 
     public Cart() {

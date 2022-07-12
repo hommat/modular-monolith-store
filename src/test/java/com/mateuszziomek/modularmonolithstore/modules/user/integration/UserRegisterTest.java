@@ -26,7 +26,6 @@ class UserRegisterTest {
         // Assert
         StepVerifier
                 .create(result)
-                .then(() -> sut.processMessages(10).block())
                 .verifyComplete();
 
         StepVerifier
@@ -34,36 +33,11 @@ class UserRegisterTest {
                 .expectNextMatches(user -> user.id().equals(uuid))
                 .verifyComplete();
 
+        sut.processMessages(10).block();
         assertThat(messageBus.publishedMessages.length()).isEqualTo(1);
         var event = (UserRegisteredIntegrationEvent) messageBus.publishedMessages.get(0);
         assertThat(event).isInstanceOf(UserRegisteredIntegrationEvent.class);
         assertThat(event.userId()).isEqualTo(uuid);
         assertThat(event.username()).isEqualTo("username");
-    }
-
-    @Test
-    void usernameMustNotBeInUse() {
-        // Arrange
-        var messageBus = new TestMessageBus();
-        var sut = UserModule.bootstrap(messageBus);
-        var uuid = UUID.randomUUID();
-        sut.dispatchCommand(new RegisterCommand(UUID.randomUUID(), "username", "password")).block();
-        sut.processMessages(10).block();
-        messageBus.clearPublishedMessages();
-
-        // Act
-        var result = sut.dispatchCommand(new RegisterCommand(uuid, "username", "password"));
-
-        // Assert
-        StepVerifier
-                .create(result)
-                .then(() -> sut.processMessages(10).block())
-                .verifyError();
-
-        StepVerifier
-                .create(sut.dispatchQuery(new GetDetailsUserQuery(uuid)))
-                .verifyComplete();
-
-        assertThat(messageBus.publishedMessages.length()).isZero();
     }
 }

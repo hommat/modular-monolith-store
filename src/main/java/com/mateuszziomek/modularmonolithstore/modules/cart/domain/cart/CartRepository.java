@@ -1,8 +1,5 @@
 package com.mateuszziomek.modularmonolithstore.modules.cart.domain.cart;
 
-import reactor.core.publisher.Mono;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.AggregateRepository;
 
-public interface CartRepository {
-    Mono<Cart> findById(CartId id);
-    Mono<Void> save(Cart user);
-}
+public interface CartRepository extends AggregateRepository<Cart, CartId> { }

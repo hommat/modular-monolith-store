@@ -2,11 +2,7 @@ package com.mateuszziomek.modularmonolithstore.modules.user.application.command.
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.application.command.CommandHandler;
-import com.mateuszziomek.modularmonolithstore.modules.user.application.exception.UsernameAlreadyInUseException;
-import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.User;
-import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserId;
-import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
-import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.Username;
+import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.*;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PasswordHashingAlgorithm;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PlainPassword;
 import reactor.core.publisher.Mono;
@@ -14,16 +10,20 @@ import reactor.core.publisher.Mono;
 public class RegisterHandler implements CommandHandler<RegisterCommand> {
     private final UserRepository userRepository;
     private final PasswordHashingAlgorithm passwordHashingAlgorithm;
+    private final UserFactory userFactory;
 
     public RegisterHandler(
             final UserRepository userRepository,
-            final PasswordHashingAlgorithm passwordHashingAlgorithm
+            final PasswordHashingAlgorithm passwordHashingAlgorithm,
+            final UserFactory userFactory
     ) {
         Preconditions.checkNotNull(userRepository, "User repository can't be null");
         Preconditions.checkNotNull(passwordHashingAlgorithm, "Password hashing algorithm can't be null");
+        Preconditions.checkNotNull(userFactory, "User factory can't be null");
 
         this.userRepository = userRepository;
         this.passwordHashingAlgorithm = passwordHashingAlgorithm;
+        this.userFactory = userFactory;
     }
 
     @Override
@@ -33,15 +33,14 @@ public class RegisterHandler implements CommandHandler<RegisterCommand> {
         final var userId = new UserId(command.userId());
         final var username = new Username(command.username());
         final var password = new PlainPassword(command.password());
+        final var user = userFactory.register(userId, username, password, passwordHashingAlgorithm);
+
+        if (user.isFailure()) {
+            return Mono.error(user.getCause());
+        }
 
         return userRepository
-                .isUsernameInUse(username)
-                .flatMap(isUsernameInUse -> Boolean.TRUE.equals(isUsernameInUse)
-                        ? Mono.error(new UsernameAlreadyInUseException(username))
-                        : Mono.just(isUsernameInUse)
-                )
-                .map(result -> User.register(userId, username, password, passwordHashingAlgorithm))
-                .flatMap(userRepository::save)
+                .save(user.get())
                 .then();
     }
 }

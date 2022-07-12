@@ -19,28 +19,24 @@ public class InMemoryOutboxMessageRepository implements OutboxMessageRepository 
     private List<OutboxMessage> messages = List.empty();
 
     @Override
-    public Flux<OutboxMessage> findUnprocessedMessages(int amount) {
+    public synchronized Flux<OutboxMessage> findUnprocessedMessages(int amount) {
         return Flux.fromIterable(messages.subSequence(0, Math.min(amount, messages.length())));
     }
 
     @Override
-    public Mono<Void> saveDomainEvents(final List<? extends DomainEvent> messages) {
+    public synchronized Mono<Void> saveDomainEvents(final List<? extends DomainEvent> messages) {
         var outboxMessages = messages
                 .map(normalizer::normalize)
                 .filter(option -> !option.isEmpty()).map(Option::get);
 
-        synchronized (this) {
-            this.messages = this.messages.appendAll(outboxMessages);
-        }
+        this.messages = this.messages.appendAll(outboxMessages);
 
         return Mono.empty();
     }
 
     @Override
-    public Mono<Void> markAsProcessed(List<OutboxMessage> messages) {
-        synchronized (this) {
-            this.messages = this.messages.removeAll(messages);
-        }
+    public synchronized Mono<Void> markAsProcessed(List<OutboxMessage> messages) {
+        this.messages = this.messages.removeAll(messages);
 
         return Mono.empty();
     }

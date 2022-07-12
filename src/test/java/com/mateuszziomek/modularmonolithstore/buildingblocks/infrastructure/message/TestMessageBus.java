@@ -2,7 +2,6 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.infrastructure.mes
 
 import com.google.common.base.Preconditions;
 import io.vavr.collection.List;
-import io.vavr.control.Try;
 import reactor.core.publisher.Mono;
 
 public class TestMessageBus extends InMemoryMessageBus {

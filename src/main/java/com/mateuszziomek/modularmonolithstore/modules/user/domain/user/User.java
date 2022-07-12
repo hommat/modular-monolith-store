@@ -2,41 +2,53 @@ package com.mateuszziomek.modularmonolithstore.modules.user.domain.user;
 
 import com.google.common.base.Preconditions;
 import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.AggregateRoot;
+import com.mateuszziomek.modularmonolithstore.buildingblocks.domain.BusinessRuleException;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.event.UserPasswordChangedDomainEvent;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.HashedPassword;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PasswordHashingAlgorithm;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PlainPassword;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.event.UserRegisteredDomainEvent;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.rule.PasswordMustBeChangedToDifferentOneRule;
+import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.rule.UsernameMustNotBeInUseRule;
 import io.vavr.control.Try;
 
-public class User extends AggregateRoot {
+import java.util.Set;
+
+public class User extends AggregateRoot<UserId> {
     private UserId userId;
     private Username username;
-    private HashedPassword hashedPassword;
+    private volatile HashedPassword hashedPassword;
 
     public User() {
         // Required for event sourcing
     }
 
-    public static User register(
+    public static Try<User> register(
             final UserId userId,
             final Username username,
             final PlainPassword plainPassword,
-            final PasswordHashingAlgorithm passwordHashingAlgorithm
-    ) {
+            final PasswordHashingAlgorithm passwordHashingAlgorithm,
+            final Set<Username> usernamesInUse
+        ) {
         Preconditions.checkNotNull(userId, "User id can't be null");
         Preconditions.checkNotNull(username, "Username can't be null");
         Preconditions.checkNotNull(plainPassword, "Password can't be null");
         Preconditions.checkNotNull(passwordHashingAlgorithm, "Password hashing algorithm can't be null");
+        Preconditions.checkNotNull(usernamesInUse, "Usernames in use can't be null");
+
+        final var usernameMustNotBeInUseRule = new UsernameMustNotBeInUseRule(usernamesInUse, username);
+
+        if (usernameMustNotBeInUseRule.isBroken()) {
+            return Try.failure(new BusinessRuleException(usernameMustNotBeInUseRule));
+        }
 
         final var user = new User();
         final var hashedPassword = passwordHashingAlgorithm.hash(plainPassword);
         user.raiseEvent(new UserRegisteredDomainEvent(userId, username, hashedPassword));
-        return user;
+        return Try.success(user);
     }
 
-    public Try<User> changePassword(
+    public synchronized Try<User> changePassword(
             final PlainPassword newPlainPassword,
             final PasswordHashingAlgorithm passwordHashingAlgorithm
     ) {
@@ -60,6 +72,7 @@ public class User extends AggregateRoot {
         hashedPassword = event.password();
     }
 
+    @Override
     public UserId id() {
         return userId;
     }

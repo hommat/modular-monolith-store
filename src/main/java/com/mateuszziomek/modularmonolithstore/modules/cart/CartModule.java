@@ -12,6 +12,7 @@ import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.applic
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.application.event.EventConfiguration;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.application.query.QueryBusFactory;
 import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.domain.InMemoryCartRepository;
+import com.mateuszziomek.modularmonolithstore.modules.cart.infrastructure.outbox.OutboxMessageRepositoryFactory;
 import reactor.core.publisher.Mono;
 
 public class CartModule implements CommandDispatcherModule, QueryDispatcherModule {
@@ -29,9 +30,10 @@ public class CartModule implements CommandDispatcherModule, QueryDispatcherModul
     public static CartModule bootstrap(final MessageBus messageBus) {
         Preconditions.checkNotNull(messageBus, "Message bus can't be null");
 
-        var cartRepository = new InMemoryCartRepository();
-        var commandBus = CommandBusFactory.create(cartRepository);
-        var queryBus = QueryBusFactory.create(cartRepository);
+        final var outboxMessageRepository = OutboxMessageRepositoryFactory.create();
+        final var cartRepository = new InMemoryCartRepository(outboxMessageRepository);
+        final var commandBus = CommandBusFactory.create(cartRepository);
+        final var queryBus = QueryBusFactory.create(cartRepository);
         EventConfiguration.configure(messageBus, commandBus);
 
         return new CartModule(commandBus, queryBus);

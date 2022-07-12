@@ -7,6 +7,7 @@ import com.mateuszziomek.modularmonolithstore.modules.user.application.command.c
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.changepassword.ChangePasswordHandler;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.register.RegisterCommand;
 import com.mateuszziomek.modularmonolithstore.modules.user.application.command.register.RegisterHandler;
+import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserFactory;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.UserRepository;
 import com.mateuszziomek.modularmonolithstore.modules.user.domain.user.password.PasswordHashingAlgorithm;
 
@@ -21,10 +22,11 @@ public class CommandBusFactory {
         Preconditions.checkNotNull(passwordHashingAlgorithm, "Password hashing algorithm can't be null");
 
         final var commandBus = new CommandBus();
+        final var userFactory = new UserFactory();
 
         commandBus.registerCommand(
                 RegisterCommand.class,
-                new CommandLoggingDecorator<>(new RegisterHandler(userRepository, passwordHashingAlgorithm))
+                new CommandLoggingDecorator<>(new RegisterHandler(userRepository, passwordHashingAlgorithm, userFactory))
         );
 
         commandBus.registerCommand(

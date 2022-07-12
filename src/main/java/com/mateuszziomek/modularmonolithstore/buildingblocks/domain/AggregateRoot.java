@@ -3,20 +3,26 @@ package com.mateuszziomek.modularmonolithstore.buildingblocks.domain;
 import com.google.common.base.Preconditions;
 import io.vavr.collection.List;
 
-public abstract class AggregateRoot extends Entity {
+public abstract class AggregateRoot<T extends AggregateId> extends Entity {
     private List<DomainEvent> pendingDomainEvents = List.empty();
 
-    public void raiseEvent(final DomainEvent domainEvent) {
+    public abstract T id();
+
+    public synchronized void raiseEvent(final DomainEvent domainEvent) {
         Preconditions.checkNotNull(domainEvent, "Domain event can't be null");
 
         applyChange(domainEvent, true);
     }
 
-    public void markDomainEventsAsCommitted() {
+    public synchronized void markDomainEventsAsCommitted() {
         pendingDomainEvents = List.empty();
     }
 
-    public List<DomainEvent> pendingDomainEvents() {
+    public synchronized void markDomainEventsAsCommitted(List<DomainEvent> events) {
+        pendingDomainEvents = pendingDomainEvents.removeAll(events);
+    }
+
+    public synchronized List<DomainEvent> pendingDomainEvents() {
         return pendingDomainEvents;
     }
 

@@ -54,5 +54,10 @@ class AggregateRootTest {
         public void on(TestDomainEvent event) {
             testDomainEventsLoaded += 1;
         }
+
+        @Override
+        public AggregateId id() {
+            return null;
+        }
     }
 }

@@ -22,11 +22,15 @@ class UserTest extends AbstractAggregateRootTest {
         var userId = new UserId(userUUID);
         var username = new Username("Example username");
         var password = new PlainPassword("Example plain password");
+        var userFactory = new UserFactory();
 
         // Act
-        var sut = User.register(userId, username, password, new TestPasswordHashingAlgorithm());
+        var result = userFactory.register(userId, username, password, new TestPasswordHashingAlgorithm());
 
         // Assert
+        assertThat(result.isSuccess()).isTrue();
+
+        var sut = result.get();
         assertThatNumberOfPendingEventsIs(sut, 1);
 
         var event = (UserRegisteredDomainEvent) sut.pendingDomainEvents().get(0);
@@ -34,6 +38,24 @@ class UserTest extends AbstractAggregateRootTest {
         assertThat(event.userId()).isEqualTo(new UserId(userUUID));
         assertThat(event.username()).isEqualTo(new Username("Example username"));
         assertThat(event.password()).isEqualTo(new HashedPassword("h_Example plain password"));
+    }
+
+    @Test
+    void usernameMustBeUnique() {
+        // Arrange
+        var userUUID = UUID.randomUUID();
+        var userId = new UserId(userUUID);
+        var username = new Username("Example username");
+        var password = new PlainPassword("Example plain password");
+        var userFactory = new UserFactory();
+
+        userFactory.register(userId, username, password, new TestPasswordHashingAlgorithm());
+
+        // Act
+        var result = userFactory.register(userId, username, password, new TestPasswordHashingAlgorithm());
+
+        // Assert
+        assertThat(result.isFailure()).isTrue();
     }
 
     @Test
@@ -74,8 +96,9 @@ class UserTest extends AbstractAggregateRootTest {
         var username = new Username("Example username");
         var password = new PlainPassword(DEFAULT_PASSWORD);
         var passwordHashingAlgorithm = new TestPasswordHashingAlgorithm();
+        var userFactory = new UserFactory();
 
-        var user = User.register(userId, username, password, passwordHashingAlgorithm);
+        var user = userFactory.register(userId, username, password, passwordHashingAlgorithm).get();
         user.markDomainEventsAsCommitted();
 
         return user;

@@ -18,8 +18,6 @@ public class OutboxProcessor {
     }
 
     public Mono<Void> process(int amount) {
-        messageRepository.findUnprocessedMessages(amount);
-
         return messageRepository
                 .findUnprocessedMessages(amount)
                 .concatMap(message -> messageBus
