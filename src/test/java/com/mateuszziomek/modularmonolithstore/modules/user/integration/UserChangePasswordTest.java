@@ -29,9 +29,9 @@ class UserChangePasswordTest {
         // Assert
         StepVerifier
                 .create(result)
-                .then(() -> sut.processMessages(10))
                 .verifyComplete();
 
+        sut.processMessages(10).block();
         assertThat(messageBus.publishedMessages.length()).isZero();
     }
 
@@ -47,9 +47,9 @@ class UserChangePasswordTest {
         // Assert
         StepVerifier
                 .create(result)
-                .then(() -> sut.processMessages(10))
                 .verifyError();
 
+        sut.processMessages(10).block();
         assertThat(messageBus.publishedMessages.length()).isZero();
     }
 }
