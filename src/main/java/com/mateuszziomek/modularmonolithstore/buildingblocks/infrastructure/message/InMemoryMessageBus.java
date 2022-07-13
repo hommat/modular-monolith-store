@@ -10,7 +10,7 @@ public class InMemoryMessageBus implements MessageBus {
     private final HashMap<Class<? extends IntegrationMessage>, List<IntegrationMessageHandler>> handlers = new HashMap<>();
 
     @Override
-    public <T extends IntegrationMessage> Mono<Void> publish(T integrationMessage) {
+    public synchronized  <T extends IntegrationMessage> Mono<Void> publish(T integrationMessage) {
         var eventHandlers = handlers.get(integrationMessage.getClass());
 
         if (eventHandlers == null || eventHandlers.isEmpty()) {
@@ -25,7 +25,7 @@ public class InMemoryMessageBus implements MessageBus {
     }
 
     @Override
-    public <T extends IntegrationMessage> void subscribe(Class<T> event, IntegrationMessageHandler<T> handler) {
+    public synchronized  <T extends IntegrationMessage> void subscribe(Class<T> event, IntegrationMessageHandler<T> handler) {
         if (handlers.containsKey(event)) {
             handlers.put(event, handlers.get(event).append(handler));
         } else {
