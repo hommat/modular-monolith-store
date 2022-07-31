@@ -12,4 +12,4 @@ Project uses in memory message broker, but it should not be a problem to replace
 
 ## Thread safety
 
-Because project works fully in memory, I had to make sure that everything is thread safe. It was my first time working with java concurrent API, so it may not  be ideal in terms of concurrenct
+Because project works fully in memory, I had to make sure that everything is thread safe. It was my first time working with java concurrent API, so it may not  be ideal in terms of concurrency
